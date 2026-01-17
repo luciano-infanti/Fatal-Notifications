@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fatal Notifications</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #1e1f22;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Update Banner */
+        .update-banner {
+            background: linear-gradient(135deg, #5865f2, #7289da);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 15px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .update-banner.show {
+            display: flex;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .update-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .update-icon {
+            font-size: 24px;
+        }
+
+        .update-text h3 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .update-text p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .btn-update {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-update:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Header */
+        .header {
+            background: #2b2d31;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .version-tag {
+            font-size: 11px;
+            background: #5865f2;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: #313338;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #f23f43;
+        }
+
+        .status.running .status-dot {
+            background: #23a55a;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: #2b2d31;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #b5bac1;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: #b5bac1;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            background: #1e1f22;
+            border: 2px solid #3f4147;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #5865f2;
+        }
+
+        .form-group input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #5865f2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4752c4;
+        }
+
+        .btn-success {
+            background: #23a55a;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #1a8f4d;
+        }
+
+        .btn-danger {
+            background: #f23f43;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #d32f33;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Toggle Switches */
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: #313338;
+            border-radius: 8px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #4f545c;
+            border-radius: 24px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider:before {
+            content: "";
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle-switch input:checked+.toggle-slider {
+            background: #5865f2;
+        }
+
+        .toggle-switch input:checked+.toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .toggle-label {
+            font-size: 13px;
+            color: #dcddde;
+        }
+
+        /* Activity Log */
+        .log-area {
+            background: #1e1f22;
+            border-radius: 8px;
+            padding: 12px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            color: #b5bac1;
+        }
+
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid #2b2d31;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-time {
+            color: #5865f2;
+            margin-right: 8px;
+        }
+
+        /* Control Buttons */
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn-control {
+            padding: 14px;
+            font-size: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Update Banner -->
+        <div class="update-banner" id="updateBanner">
+            <div class="update-info">
+                <span class="update-icon">🚀</span>
+                <div class="update-text">
+                    <h3>Update Available!</h3>
+                    <p id="updateVersion">Version X.X.X is ready to download</p>
+                </div>
+            </div>
+            <button class="btn-update" id="btnUpdate" onclick="installUpdate()">Update Now</button>
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+            <h1 id="appTitle">📡 Fatal Notifications <span class="version-tag" id="versionTag">v1.0.0</span></h1>
+            <div class="status" id="statusBadge">
+                <span class="status-dot"></span>
+                <span id="statusText">Stopped</span>
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="card">
+            <div class="card-title">⚙️ API Settings</div>
+            <div class="form-group">
+                <label>TS3 API Key</label>
+                <div class="form-row">
+                    <input type="text" id="ts3Key" placeholder="e.g. XXXX-XXXX-XXXX-XXXX-XXXX">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Pushbullet API Key</label>
+                <div class="form-row">
+                    <input type="text" id="pbKey" placeholder="Your Pushbullet Access Token">
+                    <button class="btn btn-primary" onclick="saveSettings()">💾 Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card">
+            <div class="card-title">🔔 Notification Filters</div>
+            <div class="filters-grid">
+                <label class="toggle-item">
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="filterNext" checked>
+                        <span class="toggle-slider"></span>
+                    </div>
+                    <span class="toggle-label">🎯 Next Respawn</span>
+                </label>
+                <label class="toggle-item">
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="filterPoke" checked>
+                        <span class="toggle-slider"></span>
+                    </div>
+                    <span class="toggle-label">📢 Other Pokes</span>
+                </label>
+                <label class="toggle-item">
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="filterHuntedUp" checked>
+                        <span class="toggle-slider"></span>
+                    </div>
+                    <span class="toggle-label">⬆️ Hunted Up</span>
+                </label>
+                <label class="toggle-item">
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="filterFriendUp" checked>
+                        <span class="toggle-slider"></span>
+                    </div>
+                    <span class="toggle-label">👋 Friend Up</span>
+                </label>
+                <label class="toggle-item">
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="filterHuntedDeath" checked>
+                        <span class="toggle-slider"></span>
+                    </div>
+                    <span class="toggle-label">💀 Hunted Death</span>
+                </label>
+                <label class="toggle-item">
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="filterFriendDeath" checked>
+                        <span class="toggle-slider"></span>
+                    </div>
+                    <span class="toggle-label">☠️ Friend Death</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="card">
+            <div class="card-title">📋 Activity Log</div>
+            <div class="log-area" id="logArea">
+                <div class="log-entry"><span class="log-time">[--:--:--]</span>Ready to start...</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn btn-success btn-control" id="btnStart" onclick="startMonitoring()">
+                ▶️ Start Monitoring
+            </button>
+            <button class="btn btn-danger btn-control" id="btnStop" onclick="stopMonitoring()" disabled>
+                ⏹️ Stop
+            </button>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="/eel.js"></script>
+    <script>
+        // State
+        let isRunning = false;
+        let pendingUpdateUrl = null;
+
+        // Initialize app
+        async function initApp() {
+            // Load app info
+            const appInfo = await eel.get_app_info()();
+            if (appInfo) {
+                document.getElementById('versionTag').textContent = 'v' + appInfo.version;
+            }
+
+            // Load settings
+            await loadSettings();
+
+            // Check for updates
+            const update = await eel.check_update()();
+            if (update && update.available) {
+                pendingUpdateUrl = update.download_url;
+                document.getElementById('updateVersion').textContent =
+                    `Version ${update.version} is ready to download`;
+                document.getElementById('updateBanner').classList.add('show');
+                addLog(`🚀 Update available: v${update.version}`);
+            }
+        }
+
+        // Install update
+        async function installUpdate() {
+            if (!pendingUpdateUrl) return;
+
+            document.getElementById('btnUpdate').textContent = 'Downloading...';
+            document.getElementById('btnUpdate').disabled = true;
+            addLog('⬇️ Downloading update...');
+
+            const result = await eel.do_update(pendingUpdateUrl)();
+            if (!result.success) {
+                addLog('❌ Update failed: ' + result.message);
+                document.getElementById('btnUpdate').textContent = 'Retry';
+                document.getElementById('btnUpdate').disabled = false;
+            }
+        }
+
+        // Load settings
+        async function loadSettings() {
+            const settings = await eel.load_settings()();
+            if (settings) {
+                document.getElementById('ts3Key').value = settings.ts3_api_key || '';
+                document.getElementById('pbKey').value = settings.pb_api_key || '';
+
+                const filters = settings.filters || {};
+                document.getElementById('filterNext').checked = filters.next !== false;
+                document.getElementById('filterPoke').checked = filters.poke !== false;
+                document.getElementById('filterHuntedUp').checked = filters.hunted_up !== false;
+                document.getElementById('filterFriendUp').checked = filters.friend_up !== false;
+                document.getElementById('filterHuntedDeath').checked = filters.hunted_death !== false;
+                document.getElementById('filterFriendDeath').checked = filters.friend_death !== false;
+            }
+        }
+
+        // Save settings
+        async function saveSettings() {
+            const settings = {
+                ts3_api_key: document.getElementById('ts3Key').value,
+                pb_api_key: document.getElementById('pbKey').value,
+                filters: {
+                    next: document.getElementById('filterNext').checked,
+                    poke: document.getElementById('filterPoke').checked,
+                    hunted_up: document.getElementById('filterHuntedUp').checked,
+                    friend_up: document.getElementById('filterFriendUp').checked,
+                    hunted_death: document.getElementById('filterHuntedDeath').checked,
+                    friend_death: document.getElementById('filterFriendDeath').checked
+                }
+            };
+            const result = await eel.save_settings(settings)();
+            if (result) {
+                addLog('✅ Settings saved!');
+            } else {
+                addLog('❌ Failed to save settings');
+            }
+        }
+
+        // Start monitoring
+        async function startMonitoring() {
+            const ts3Key = document.getElementById('ts3Key').value;
+            if (!ts3Key) {
+                addLog('❌ Please enter TS3 API Key first!');
+                return;
+            }
+
+            await saveSettings();
+            setFieldsDisabled(true);
+
+            isRunning = true;
+            updateStatus(true);
+            document.getElementById('btnStart').disabled = true;
+            document.getElementById('btnStop').disabled = false;
+
+            await eel.start_monitoring()();
+        }
+
+        // Stop monitoring
+        async function stopMonitoring() {
+            await eel.stop_monitoring()();
+        }
+
+        // Update status display
+        function updateStatus(running) {
+            const badge = document.getElementById('statusBadge');
+            const text = document.getElementById('statusText');
+
+            if (running) {
+                badge.classList.add('running');
+                text.textContent = 'Running';
+            } else {
+                badge.classList.remove('running');
+                text.textContent = 'Stopped';
+            }
+        }
+
+        // Disable/Enable input fields
+        function setFieldsDisabled(disabled) {
+            document.getElementById('ts3Key').disabled = disabled;
+            document.getElementById('pbKey').disabled = disabled;
+        }
+
+        // Add log entry
+        function addLog(message) {
+            const logArea = document.getElementById('logArea');
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-time">[${time}]</span>${message}`;
+            logArea.appendChild(entry);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        // Exposed to Python
+        eel.expose(addLog);
+
+        eel.expose(function onStopped() {
+            isRunning = false;
+            updateStatus(false);
+            setFieldsDisabled(false);
+            document.getElementById('btnStart').disabled = false;
+            document.getElementById('btnStop').disabled = true;
+        });
+
+        // Initialize on load
+        initApp();
+    </script>
+</body>
+
+</html>
