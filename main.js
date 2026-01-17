@@ -7,7 +7,7 @@ const https = require('https');
 // --- APP INFO ---
 const APP_NAME = 'Fatal Notifications';
 const APP_VERSION = '1.0.0';
-const GITHUB_REPO = 'sickn33/fatal-notifications';
+const GITHUB_REPO = 'luciano-infanti/Fatal-Notifications';
 const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 
 // --- CONSTANTS ---
