@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
     <title>Fatal Notifications</title>
     <style>
         * {
@@ -12,12 +14,17 @@
             box-sizing: border-box;
         }
 
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
         body {
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: #1e1f22;
             color: #ffffff;
-            min-height: 100vh;
-            padding: 20px;
+            padding: 12px;
         }
 
         .container {
@@ -92,9 +99,29 @@
         .header {
             background: #2b2d31;
             border-radius: 12px;
-            padding: 20px;
+            padding: 14px;
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .btn-minimize {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #4f545c;
+            border: none;
+            color: #b5bac1;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-minimize:hover {
+            background: #5865f2;
+            color: white;
         }
 
         .header h1 {
@@ -150,8 +177,8 @@
         .card {
             background: #2b2d31;
             border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 15px;
+            padding: 14px;
+            margin-bottom: 10px;
         }
 
         .card-title {
@@ -321,11 +348,11 @@
         .log-area {
             background: #1e1f22;
             border-radius: 8px;
-            padding: 12px;
-            height: 200px;
+            padding: 10px;
+            height: 120px;
             overflow-y: auto;
             font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 12px;
+            font-size: 11px;
             color: #b5bac1;
         }
 
@@ -368,11 +395,12 @@
                     <p id="updateVersion">Version X.X.X is ready to download</p>
                 </div>
             </div>
-            <button class="btn-update" id="btnUpdate" onclick="installUpdate()">Update Now</button>
+            <button class="btn-update" id="btnUpdate" onclick="openUpdatePage()">Download</button>
         </div>
 
         <!-- Header -->
         <div class="header">
+            <button class="btn-minimize" onclick="minimizeToTray()" title="Minimize to Tray">➖ Tray</button>
             <h1 id="appTitle">📡 Fatal Notifications <span class="version-tag" id="versionTag">v1.0.0</span></h1>
             <div class="status" id="statusBadge">
                 <span class="status-dot"></span>
@@ -466,7 +494,6 @@
         </div>
     </div>
 
-    <script type="text/javascript" src="/eel.js"></script>
     <script>
         // State
         let isRunning = false;
@@ -475,16 +502,16 @@
         // Initialize app
         async function initApp() {
             // Load app info
-            const appInfo = await eel.get_app_info()();
+            const appInfo = await window.api.getAppInfo();
             if (appInfo) {
                 document.getElementById('versionTag').textContent = 'v' + appInfo.version;
             }
 
             // Load settings
-            await loadSettings();
+            await loadSettingsFromMain();
 
             // Check for updates
-            const update = await eel.check_update()();
+            const update = await window.api.checkUpdate();
             if (update && update.available) {
                 pendingUpdateUrl = update.download_url;
                 document.getElementById('updateVersion').textContent =
@@ -492,27 +519,31 @@
                 document.getElementById('updateBanner').classList.add('show');
                 addLog(`🚀 Update available: v${update.version}`);
             }
+
+            // Listen for logs from main process
+            window.api.onLog((message) => {
+                addLog(message);
+            });
+
+            // Listen for status changes
+            window.api.onStatus((running) => {
+                updateStatus(running);
+                if (!running) {
+                    onStopped();
+                }
+            });
         }
 
-        // Install update
-        async function installUpdate() {
-            if (!pendingUpdateUrl) return;
-
-            document.getElementById('btnUpdate').textContent = 'Downloading...';
-            document.getElementById('btnUpdate').disabled = true;
-            addLog('⬇️ Downloading update...');
-
-            const result = await eel.do_update(pendingUpdateUrl)();
-            if (!result.success) {
-                addLog('❌ Update failed: ' + result.message);
-                document.getElementById('btnUpdate').textContent = 'Retry';
-                document.getElementById('btnUpdate').disabled = false;
+        // Open update page in browser
+        function openUpdatePage() {
+            if (pendingUpdateUrl) {
+                require('electron').shell.openExternal(pendingUpdateUrl);
             }
         }
 
-        // Load settings
-        async function loadSettings() {
-            const settings = await eel.load_settings()();
+        // Load settings from main process
+        async function loadSettingsFromMain() {
+            const settings = await window.api.loadSettings();
             if (settings) {
                 document.getElementById('ts3Key').value = settings.ts3_api_key || '';
                 document.getElementById('pbKey').value = settings.pb_api_key || '';
@@ -541,7 +572,7 @@
                     friend_death: document.getElementById('filterFriendDeath').checked
                 }
             };
-            const result = await eel.save_settings(settings)();
+            const result = await window.api.saveSettings(settings);
             if (result) {
                 addLog('✅ Settings saved!');
             } else {
@@ -565,12 +596,12 @@
             document.getElementById('btnStart').disabled = true;
             document.getElementById('btnStop').disabled = false;
 
-            await eel.start_monitoring()();
+            await window.api.startMonitoring();
         }
 
         // Stop monitoring
         async function stopMonitoring() {
-            await eel.stop_monitoring()();
+            await window.api.stopMonitoring();
         }
 
         // Update status display
@@ -593,6 +624,20 @@
             document.getElementById('pbKey').disabled = disabled;
         }
 
+        // Called when monitoring stops
+        function onStopped() {
+            isRunning = false;
+            updateStatus(false);
+            setFieldsDisabled(false);
+            document.getElementById('btnStart').disabled = false;
+            document.getElementById('btnStop').disabled = true;
+        }
+
+        // Minimize to system tray
+        function minimizeToTray() {
+            window.api.minimizeToTray();
+        }
+
         // Add log entry
         function addLog(message) {
             const logArea = document.getElementById('logArea');
@@ -603,17 +648,6 @@
             logArea.appendChild(entry);
             logArea.scrollTop = logArea.scrollHeight;
         }
-
-        // Exposed to Python
-        eel.expose(addLog);
-
-        eel.expose(function onStopped() {
-            isRunning = false;
-            updateStatus(false);
-            setFieldsDisabled(false);
-            document.getElementById('btnStart').disabled = false;
-            document.getElementById('btnStop').disabled = true;
-        });
 
         // Initialize on load
         initApp();

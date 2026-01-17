@@ -1,19 +1,15 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-dist/
-*.egg-info/
-*.egg
+# Dependencies
+node_modules/
 
-# PyInstaller
-*.spec
+# Build output
+dist/
+build/
 
 # Settings (contains API keys)
 settings.json
+
+# Logs
+*.log
 
 # IDE
 .vscode/
@@ -23,5 +19,12 @@ settings.json
 .DS_Store
 Thumbs.db
 
-# Eel
-*.log
+# Old Python files (no longer used)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+*.spec
