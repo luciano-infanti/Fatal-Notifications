@@ -136,17 +136,7 @@ function sendPushbulletAlarm(title, message) {
     const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
     // User requested cleaner logs: No "🔔 ENVIANDO", no truncation, no bell in text.
     // Format: "[Title]: Message"
-    // Split combined messages (e.g., "Player1 upou > 400, Player2 upou > 500") into individual log entries
-    if (message.includes(', ') && (message.includes('upou') || message.includes('died') || message.includes('morreu'))) {
-        const entries = message.split(', ');
-        for (const entry of entries) {
-            if (entry.trim()) {
-                sendLog(`[${title}]: ${entry.trim()}`);
-            }
-        }
-    } else {
-        sendLog(`[${title}]: ${message}`);
-    }
+    sendLog(`[${title}]: ${message}`);
 
     const postData = JSON.stringify({
         type: 'note',
