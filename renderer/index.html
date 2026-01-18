@@ -24,18 +24,19 @@
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: #1e1f22;
             color: #ffffff;
-            padding: 12px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
         }
 
         .container {
-            max-width: 700px;
+            max-width: 1000px;
             margin: 0 auto;
             width: 100%;
             height: 100%;
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
         }
 
         /* Update Overlay */
@@ -80,13 +81,27 @@
             color: #b5bac1;
         }
 
+        /* Left Column */
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Right Column */
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            /* Important for scroll */
+        }
+
         /* Header */
         .header {
             background: #2b2d31;
             border-radius: 12px;
             padding: 14px;
             text-align: center;
-            margin-bottom: 10px;
             position: relative;
         }
 
@@ -110,9 +125,10 @@
         }
 
         .header h1 {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 600;
             margin-bottom: 8px;
+            margin-top: 4px;
         }
 
         .version-tag {
@@ -147,14 +163,19 @@
         }
 
         @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(35, 165, 90, 0.7);
             }
 
-            50% {
-                opacity: 0.5;
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(35, 165, 90, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(35, 165, 90, 0);
             }
         }
 
@@ -163,7 +184,6 @@
             background: #2b2d31;
             border-radius: 12px;
             padding: 14px;
-            margin-bottom: 10px;
         }
 
         .card-title {
@@ -229,6 +249,7 @@
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
         }
 
@@ -241,6 +262,7 @@
             background: #4752c4;
         }
 
+        /* Start Button (Green) */
         .btn-success {
             background: #23a55a;
             color: white;
@@ -250,18 +272,22 @@
             background: #1a8f4d;
         }
 
-        .btn-danger {
-            background: #f23f43;
-            color: white;
+        /* Stop Button (Ghost) */
+        .btn-ghost {
+            background: transparent;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .btn-danger:hover {
-            background: #d32f33;
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.4);
         }
 
-        .btn:disabled {
-            opacity: 0.5;
+        .btn-ghost:disabled {
+            opacity: 0.3;
             cursor: not-allowed;
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
         /* Toggle Switches */
@@ -282,8 +308,9 @@
 
         .toggle-switch {
             position: relative;
-            width: 44px;
-            height: 24px;
+            width: 36px;
+            height: 20px;
+            flex-shrink: 0;
         }
 
         .toggle-switch input {
@@ -300,15 +327,15 @@
             right: 0;
             bottom: 0;
             background: #4f545c;
-            border-radius: 24px;
+            border-radius: 20px;
             transition: 0.3s;
         }
 
         .toggle-slider:before {
             content: "";
             position: absolute;
-            height: 18px;
-            width: 18px;
+            height: 14px;
+            width: 14px;
             left: 3px;
             bottom: 3px;
             background: white;
@@ -321,7 +348,7 @@
         }
 
         .toggle-switch input:checked+.toggle-slider:before {
-            transform: translateX(20px);
+            transform: translateX(16px);
         }
 
         .toggle-label {
@@ -334,8 +361,8 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            min-height: 0;
-            /* Important for flex scrolling */
+            height: 100%;
+            overflow: hidden;
         }
 
         .log-area {
@@ -345,34 +372,80 @@
             flex: 1;
             overflow-y: auto;
             font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 11px;
+            font-size: 12px;
             color: #b5bac1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .log-entry {
-            padding: 4px 0;
+            padding: 6px 8px;
             border-bottom: 1px solid #2b2d31;
+            border-radius: 4px;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            transition: background 0.2s;
         }
 
         .log-entry:last-child {
             border-bottom: none;
         }
 
+        .log-entry:hover {
+            background: #313338;
+            cursor: pointer;
+        }
+
+        /* Copy icon/tooltip simplified */
+        .log-entry::after {
+            content: "📋";
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            font-size: 14px;
+            transition: opacity 0.2s;
+        }
+
+        .log-entry:hover::after {
+            opacity: 1;
+        }
+
         .log-time {
             color: #5865f2;
-            margin-right: 8px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .log-message {
+            word-break: break-all;
         }
 
         /* Control Buttons */
         .controls {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 2fr;
+            /* Stop is smaller, Start is bigger */
             gap: 12px;
         }
 
         .btn-control {
             padding: 14px;
             font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-stop-wrapper {
+            order: 1;
+        }
+
+        .btn-start-wrapper {
+            order: 2;
         }
     </style>
 </head>
@@ -388,99 +461,107 @@
             <div class="update-status" id="updateStatus">0%</div>
         </div>
 
-        <!-- Header -->
-        <div class="header">
-            <button class="btn-minimize" onclick="minimizeToTray()" title="Minimizar para Bandeja">➖ Bandeja</button>
-            <h1 id="appTitle">📡 Fatal Notifications <span class="version-tag" id="versionTag">v1.0.0</span></h1>
-            <div class="status" id="statusBadge">
-                <span class="status-dot"></span>
-                <span id="statusText">Parado</span>
-            </div>
-        </div>
-
-        <!-- Settings -->
-        <div class="card">
-            <div class="card-title">⚙️ Configurações da API</div>
-            <div class="form-group">
-                <label>Chave API TS3</label>
-                <div class="form-row">
-                    <input type="text" id="ts3Key" placeholder="ex. XXXX-XXXX-XXXX-XXXX-XXXX">
+        <!-- Left Column -->
+        <div class="left-column">
+            <!-- Header -->
+            <div class="header">
+                <button class="btn-minimize" onclick="minimizeToTray()"
+                    title="Minimizar para Bandeja">Minimizar</button>
+                <h1 id="appTitle">📡 Fatal Notifications <span class="version-tag" id="versionTag">v1.0.4</span></h1>
+                <div class="status" id="statusBadge">
+                    <span class="status-dot"></span>
+                    <span id="statusText">Parado</span>
                 </div>
             </div>
-            <div class="form-group">
-                <label>Chave API Pushbullet</label>
-                <div class="form-row">
-                    <input type="text" id="pbKey" placeholder="Seu Token de Acesso Pushbullet">
-                    <button class="btn btn-primary" onclick="saveSettings()">💾 Salvar</button>
+
+            <!-- Settings -->
+            <div class="card">
+                <div class="card-title">⚙️ Configurações da API</div>
+                <div class="form-group">
+                    <label>Chave API TS3</label>
+                    <div class="form-row">
+                        <input type="text" id="ts3Key" placeholder="ex. XXXX-XXXX-XXXX-XXXX-XXXX">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Chave API Pushbullet</label>
+                    <div class="form-row">
+                        <input type="text" id="pbKey" placeholder="Seu Token de Acesso Pushbullet">
+                        <button class="btn btn-primary" onclick="saveSettings()">💾 Salvar</button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Filters -->
-        <div class="card">
-            <div class="card-title">🔔 Filtros de Notificação</div>
-            <div class="filters-grid">
-                <label class="toggle-item">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="filterNext" checked>
-                        <span class="toggle-slider"></span>
-                    </div>
-                    <span class="toggle-label">🎯 Next Respawn</span>
-                </label>
-                <label class="toggle-item">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="filterPoke" checked>
-                        <span class="toggle-slider"></span>
-                    </div>
-                    <span class="toggle-label">📢 Other Pokes</span>
-                </label>
-                <label class="toggle-item">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="filterHuntedUp" checked>
-                        <span class="toggle-slider"></span>
-                    </div>
-                    <span class="toggle-label">⬆️ Hunted Up</span>
-                </label>
-                <label class="toggle-item">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="filterFriendUp" checked>
-                        <span class="toggle-slider"></span>
-                    </div>
-                    <span class="toggle-label">👋 Friend Up</span>
-                </label>
-                <label class="toggle-item">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="filterHuntedDeath" checked>
-                        <span class="toggle-slider"></span>
-                    </div>
-                    <span class="toggle-label">💀 Hunted Death</span>
-                </label>
-                <label class="toggle-item">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="filterFriendDeath" checked>
-                        <span class="toggle-slider"></span>
-                    </div>
-                    <span class="toggle-label">☠️ Friend Death</span>
-                </label>
+            <!-- Filters -->
+            <div class="card">
+                <div class="card-title">🔔 Filtros de Notificação</div>
+                <div class="filters-grid">
+                    <label class="toggle-item">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="filterNext" checked>
+                            <span class="toggle-slider"></span>
+                        </div>
+                        <span class="toggle-label">Next Respawn</span>
+                    </label>
+                    <label class="toggle-item">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="filterPoke" checked>
+                            <span class="toggle-slider"></span>
+                        </div>
+                        <span class="toggle-label">Other Pokes</span>
+                    </label>
+                    <label class="toggle-item">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="filterHuntedUp" checked>
+                            <span class="toggle-slider"></span>
+                        </div>
+                        <span class="toggle-label">Hunted Up</span>
+                    </label>
+                    <label class="toggle-item">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="filterFriendUp" checked>
+                            <span class="toggle-slider"></span>
+                        </div>
+                        <span class="toggle-label">Friend Up</span>
+                    </label>
+                    <label class="toggle-item">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="filterHuntedDeath" checked>
+                            <span class="toggle-slider"></span>
+                        </div>
+                        <span class="toggle-label">Hunted Death</span>
+                    </label>
+                    <label class="toggle-item">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="filterFriendDeath" checked>
+                            <span class="toggle-slider"></span>
+                        </div>
+                        <span class="toggle-label">Friend Death</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Controls --> // Swapped order via grid placement or DOM order
+            <div class="controls">
+                <button class="btn btn-ghost btn-control" id="btnStop" onclick="stopMonitoring()" disabled>
+                    Parar
+                </button>
+                <button class="btn btn-success btn-control" id="btnStart" onclick="startMonitoring()">
+                    Iniciar Monitoramento
+                </button>
             </div>
         </div>
 
-        <!-- Activity Log -->
-        <div class="card log-card">
-            <div class="card-title">📋 Registro de Atividades</div>
-            <div class="log-area" id="logArea">
-                <div class="log-entry"><span class="log-time">[--:--:--]</span>Pronto para iniciar...</div>
+        <!-- Right Column -->
+        <div class="right-column">
+            <!-- Activity Log -->
+            <div class="card log-card">
+                <div class="card-title">📋 Registro de Atividades</div>
+                <div class="log-area" id="logArea">
+                    <div class="log-entry" onclick="copyLog(this)"><span class="log-time">[--:--:--]</span><span
+                            class="log-message">Pronto para iniciar...</span></div>
+                </div>
             </div>
-        </div>
-
-        <!-- Controls -->
-        <div class="controls">
-            <button class="btn btn-success btn-control" id="btnStart" onclick="startMonitoring()">
-                ▶️ Iniciar Monitoramento
-            </button>
-            <button class="btn btn-danger btn-control" id="btnStop" onclick="stopMonitoring()" disabled>
-                ⏹️ Parar
-            </button>
         </div>
     </div>
 
@@ -647,9 +728,23 @@
             const time = new Date().toLocaleTimeString('en-US', { hour12: false });
             const entry = document.createElement('div');
             entry.className = 'log-entry';
-            entry.innerHTML = `<span class="log-time">[${time}]</span>${message}`;
+            entry.onclick = function () { copyLog(this); };
+            entry.innerHTML = `<span class="log-time">[${time}]</span><span class="log-message">${message}</span>`;
             logArea.appendChild(entry);
             logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        // Copy log functionality
+        function copyLog(element) {
+            const msg = element.innerText; // Get full text including time
+            navigator.clipboard.writeText(msg).then(() => {
+                // Visual feedback could go here if needed, but the copy action is enough for now
+                const originalBg = element.style.background;
+                element.style.background = '#40444b';
+                setTimeout(() => {
+                    element.style.background = '';
+                }, 200);
+            });
         }
 
         // Initialize on load

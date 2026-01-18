@@ -1,6 +1,6 @@
 {
   "name": "fatal-notifications",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A desktop app that monitors TeamSpeak 3 for bot messages and sends push notifications via Pushbullet.",
   "main": "main.js",
   "scripts": {
