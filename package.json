@@ -30,7 +30,7 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "artifactName": "${productName} Setup ${version}.${ext}"
+      "artifactName": "Fatal-Notifications-Setup-${version}.${ext}"
     },
     "publish": [
       {

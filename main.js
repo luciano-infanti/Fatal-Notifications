@@ -120,7 +120,7 @@ function setStatus(isRunning) {
     }
     // Update tray icon tooltip
     if (tray) {
-        tray.setToolTip(`Fatal Notifications - ${isRunning ? 'Rodando' : 'Parado'}`);
+        tray.setToolTip(`Fatal Notifications - ${isRunning ? 'Rodando' : 'Pausado'}`);
     }
 }
 
@@ -296,7 +296,7 @@ function stopMonitoring() {
         socket = null;
     }
     setStatus(false);
-    sendLog('Parado');
+    sendLog('Pausado');
 }
 
 // --- AUTO-UPDATE ---
@@ -380,7 +380,7 @@ function createTray() {
     );
 
     tray = new Tray(icon);
-    tray.setToolTip('Fatal Notifications - Parado');
+    tray.setToolTip('Fatal Notifications - Pausado');
 
     const contextMenu = Menu.buildFromTemplate([
         {
