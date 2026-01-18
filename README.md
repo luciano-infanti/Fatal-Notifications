@@ -96,13 +96,66 @@ Baixe o último `.exe` em [Releases](https://github.com/luciano-infanti/Fatal-No
 
 ---
 
+## 🔒 Segurança e Privacidade
+
+### ✅ Software de Código Aberto
+
+Este software é **100% open source** (código aberto). Isso significa que:
+
+- 📖 **Transparência Total**: Todo o código-fonte está disponível neste repositório para qualquer pessoa verificar
+- 🔍 **Auditável**: Você pode ler exatamente o que o programa faz - não há código oculto ou funcionalidades secretas
+- 🤝 **Comunidade**: Qualquer desenvolvedor pode revisar, sugerir melhorias ou reportar problemas
+
+### 🔐 Suas Chaves de API são Seguras
+
+- **Armazenamento Local**: Suas chaves de API são salvas **apenas no seu computador**, na pasta AppData do seu usuário
+- **Nunca Enviadas**: As chaves **nunca são enviadas** para nenhum servidor externo além do Pushbullet (para enviar suas notificações)
+- **Não Incluídas no Build**: Quando você compila ou atualiza o app, suas chaves permanecem salvas e privadas
+
+### 🛡️ O que o Software Faz (e NÃO Faz)
+
+| ✅ O que FAZ | ❌ O que NÃO faz |
+|-------------|-----------------|
+| Conecta ao TeamSpeak 3 local (127.0.0.1) | Não acessa servidores externos do TS3 |
+| Envia notificações via Pushbullet | Não coleta dados pessoais |
+| Salva configurações localmente | Não envia suas chaves para terceiros |
+| Verifica atualizações no GitHub | Não instala software adicional |
+
+### 📍 Onde Seus Dados São Armazenados
+
+```
+C:\Users\{SeuUsuário}\AppData\Roaming\fatal-notifications\settings.json
+```
+
+Este arquivo contém apenas suas chaves de API e preferências de filtro. Você pode deletá-lo a qualquer momento para "resetar" o aplicativo.
+
+### 🔓 Licença MIT
+
+Este projeto usa a licença MIT - uma das licenças mais permissivas. Você pode usar, modificar e distribuir livremente.
+
+---
+
 ## 🛠️ Compilando do Código-Fonte
 
+Se preferir compilar você mesmo (em vez de baixar o .exe pronto):
+
 ```bash
+# Clone o repositório
+git clone https://github.com/luciano-infanti/Fatal-Notifications.git
+cd Fatal-Notifications
+
+# Instale as dependências
 npm install
+
+# Execute em modo desenvolvimento
+npm start
+
+# Ou compile o instalador
 npm run build
 ```
 
+---
+
 ## 📄 Licença
 
-MIT
+MIT - Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
