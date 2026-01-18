@@ -25,74 +25,59 @@
             background-color: #1e1f22;
             color: #ffffff;
             padding: 12px;
+            display: flex;
+            flex-direction: column;
         }
 
         .container {
             max-width: 700px;
             margin: 0 auto;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Update Banner */
-        .update-banner {
-            background: linear-gradient(135deg, #5865f2, #7289da);
-            border-radius: 12px;
-            padding: 14px 18px;
-            margin-bottom: 15px;
+        /* Update Overlay */
+        .update-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
             display: none;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            animation: slideDown 0.3s ease-out;
+            justify-content: center;
+            text-align: center;
         }
 
-        .update-banner.show {
+        .update-overlay.show {
             display: flex;
         }
 
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .progress-bar-container {
+            width: 300px;
+            height: 10px;
+            background: #2b2d31;
+            border-radius: 5px;
+            margin-top: 20px;
+            overflow: hidden;
         }
 
-        .update-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .progress-bar {
+            height: 100%;
+            background: #5865f2;
+            width: 0%;
+            transition: width 0.2s;
         }
 
-        .update-icon {
-            font-size: 24px;
-        }
-
-        .update-text h3 {
+        .update-status {
+            margin-top: 10px;
             font-size: 14px;
-            font-weight: 600;
-        }
-
-        .update-text p {
-            font-size: 12px;
-            opacity: 0.9;
-        }
-
-        .btn-update {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-update:hover {
-            background: rgba(255, 255, 255, 0.3);
+            color: #b5bac1;
         }
 
         /* Header */
@@ -345,11 +330,19 @@
         }
 
         /* Activity Log */
+        .card.log-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            /* Important for flex scrolling */
+        }
+
         .log-area {
             background: #1e1f22;
             border-radius: 8px;
             padding: 10px;
-            height: 120px;
+            flex: 1;
             overflow-y: auto;
             font-family: 'Consolas', 'Monaco', monospace;
             font-size: 11px;
@@ -386,16 +379,13 @@
 
 <body>
     <div class="container">
-        <!-- Update Banner -->
-        <div class="update-banner" id="updateBanner">
-            <div class="update-info">
-                <span class="update-icon">🚀</span>
-                <div class="update-text">
-                    <h3>Update Available!</h3>
-                    <p id="updateVersion">Version X.X.X is ready to download</p>
-                </div>
+        <!-- Update Overlay -->
+        <div class="update-overlay" id="updateOverlay">
+            <h2 id="updateTitle">Downloading Update...</h2>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
             </div>
-            <button class="btn-update" id="btnUpdate" onclick="openUpdatePage()">Download</button>
+            <div class="update-status" id="updateStatus">0%</div>
         </div>
 
         <!-- Header -->
@@ -476,7 +466,7 @@
         </div>
 
         <!-- Activity Log -->
-        <div class="card">
+        <div class="card log-card">
             <div class="card-title">📋 Activity Log</div>
             <div class="log-area" id="logArea">
                 <div class="log-entry"><span class="log-time">[--:--:--]</span>Ready to start...</div>
@@ -501,44 +491,57 @@
 
         // Initialize app
         async function initApp() {
-            // Load app info
+            // App Info
             const appInfo = await window.api.getAppInfo();
             if (appInfo) {
                 document.getElementById('versionTag').textContent = 'v' + appInfo.version;
             }
 
-            // Load settings
+            // Settings
             await loadSettingsFromMain();
 
-            // Check for updates
-            const update = await window.api.checkUpdate();
-            if (update && update.available) {
-                pendingUpdateUrl = update.download_url;
-                document.getElementById('updateVersion').textContent =
-                    `Version ${update.version} is ready to download`;
-                document.getElementById('updateBanner').classList.add('show');
-                addLog(`🚀 Update available: v${update.version}`);
-            }
+            // Logs
+            window.api.onLog((message) => addLog(message));
 
-            // Listen for logs from main process
-            window.api.onLog((message) => {
-                addLog(message);
-            });
-
-            // Listen for status changes
+            // Status
             window.api.onStatus((running) => {
                 updateStatus(running);
-                if (!running) {
-                    onStopped();
-                }
+                if (!running) onStopped();
             });
+
+            // Update Listeners
+            window.api.onDownloadProgress((percent) => {
+                const bar = document.getElementById('progressBar');
+                const status = document.getElementById('updateStatus');
+                bar.style.width = percent + '%';
+                status.textContent = Math.round(percent) + '%';
+            });
+
+            window.api.onDownloadComplete(() => {
+                document.getElementById('updateTitle').textContent = 'Installing Update...';
+                document.getElementById('updateStatus').textContent = 'Restarting app...';
+            });
+
+            window.api.onDownloadError((err) => {
+                document.getElementById('updateTitle').textContent = 'Update Failed!';
+                document.getElementById('updateStatus').textContent = err;
+                setTimeout(() => {
+                    document.getElementById('updateOverlay').classList.remove('show');
+                }, 3000);
+            });
+
+            // Check for updates immediately
+            const update = await window.api.checkUpdate();
+            if (update && update.available) {
+                startUpdateProcess(update.version, update.download_url);
+            }
         }
 
-        // Open update page in browser
-        function openUpdatePage() {
-            if (pendingUpdateUrl) {
-                require('electron').shell.openExternal(pendingUpdateUrl);
-            }
+        // Start the update process
+        function startUpdateProcess(version, url) {
+            document.getElementById('updateOverlay').classList.add('show');
+            document.getElementById('updateTitle').textContent = `Downloading Update v${version}...`;
+            window.api.downloadUpdate(url);
         }
 
         // Load settings from main process

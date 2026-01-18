@@ -328,6 +328,55 @@ function checkForUpdates() {
     });
 }
 
+function downloadUpdate(url) {
+    const fs = require('fs');
+    const path = require('path');
+    const os = require('os');
+    const { shell } = require('electron');
+
+    const tempDir = os.tmpdir();
+    const destPath = path.join(tempDir, 'FatalNotifications_Update.exe');
+    const file = fs.createWriteStream(destPath);
+
+    https.get(url, (response) => {
+        // Handle redirect if needed
+        if (response.statusCode === 302 || response.statusCode === 301) {
+            downloadUpdate(response.headers.location);
+            return;
+        }
+
+        const totalBytes = parseInt(response.headers['content-length'], 10);
+        let receivedBytes = 0;
+
+        response.pipe(file);
+
+        response.on('data', (chunk) => {
+            receivedBytes += chunk.length;
+            if (mainWindow) {
+                const percentage = (receivedBytes / totalBytes) * 100;
+                mainWindow.webContents.send('download-progress', percentage);
+            }
+        });
+
+        file.on('finish', () => {
+            file.close(() => {
+                if (mainWindow) {
+                    mainWindow.webContents.send('download-complete');
+                }
+                // Run the installer/executable
+                shell.openPath(destPath).then(() => {
+                    setTimeout(() => app.quit(), 1000);
+                });
+            });
+        });
+    }).on('error', (err) => {
+        fs.unlink(destPath, () => { }); // Delete the file async. (But we don't check the result)
+        if (mainWindow) {
+            mainWindow.webContents.send('download-error', err.message);
+        }
+    });
+}
+
 // --- SYSTEM TRAY ---
 function createTray() {
     // Create a simple tray icon (16x16 colored square)
@@ -390,8 +439,8 @@ function createTray() {
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 720,
-        height: 750,  // Slightly smaller to fit content without scrollbar
-        resizable: false,  // Prevent resizing
+        height: 750,
+        resizable: true, // Re-enabled resizing
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
@@ -435,6 +484,7 @@ ipcMain.handle('get-app-info', () => ({ name: APP_NAME, version: APP_VERSION }))
 ipcMain.handle('load-settings', () => loadSettings());
 ipcMain.handle('save-settings', (_, data) => saveSettings(data));
 ipcMain.handle('check-update', () => checkForUpdates());
+ipcMain.handle('download-update', (_, url) => downloadUpdate(url));
 ipcMain.handle('start-monitoring', () => { startMonitoring(); });
 ipcMain.handle('stop-monitoring', () => { stopMonitoring(); });
 ipcMain.handle('minimize-to-tray', () => {
