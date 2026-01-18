@@ -6,6 +6,10 @@ const https = require('https');
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
 
+// Suppress GPU cache errors on Windows
+app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
+app.commandLine.appendSwitch('disable-gpu-program-cache');
+
 // Configure logging
 log.transports.file.level = 'info';
 autoUpdater.logger = log;
@@ -40,10 +44,19 @@ function loadSettings() {
         filters: {
             next: true,
             poke: true,
-            hunted_up: true,
-            friend_up: true,
-            hunted_death: true,
-            friend_death: true
+            hunted_up: false,
+            friend_up: false,
+            hunted_death: false,
+            friend_death: false
+        },
+        sound_enabled: false,
+        filter_sounds: {
+            next: 'ping',
+            poke: 'ping',
+            hunted_up: 'ping',
+            friend_up: 'ping',
+            hunted_death: 'ping',
+            friend_death: 'ping'
         }
     };
 
@@ -134,9 +147,18 @@ function sendPushbulletAlarm(title, message) {
     }
 
     const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    // User requested cleaner logs: No "🔔 ENVIANDO", no truncation, no bell in text.
-    // Format: "[Title]: Message"
-    sendLog(`[${title}]: ${message}`);
+    
+    // Split combined messages (e.g., "Player1 upou > 400, Player2 upou > 500") into individual log entries
+    if (message.includes(', ') && (message.includes('upou') || message.includes('died') || message.includes('morreu'))) {
+        const entries = message.split(', ');
+        for (const entry of entries) {
+            if (entry.trim()) {
+                sendLog(`[${title}]: ${entry.trim()}`);
+            }
+        }
+    } else {
+        sendLog(`[${title}]: ${message}`);
+    }
 
     const postData = JSON.stringify({
         type: 'note',

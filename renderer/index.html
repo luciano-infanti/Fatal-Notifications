@@ -344,6 +344,135 @@
             border-color: #3f4147;
         }
 
+        .filters-grid.disabled .toggle-item {
+            opacity: 0.5;
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .filters-grid.disabled .toggle-item:hover {
+            border-color: transparent;
+        }
+
+        .filters-grid.disabled .toggle-item::after {
+            content: "Pause o aplicativo para alterar";
+            position: absolute;
+            bottom: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111214;
+            color: #ffffff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 100;
+            border: 1px solid #3f4147;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .filters-grid.disabled .toggle-item:hover::after {
+            opacity: 1;
+        }
+
+        /* Sound Toggle */
+        .sound-toggle {
+            background: #1e1f22;
+            border: 1px solid #3f4147;
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sound-toggle:hover {
+            background: #3f4147;
+            border-color: #5865f2;
+        }
+
+        .sound-toggle.active {
+            background: rgba(35, 165, 90, 0.15);
+            border-color: #23a55a;
+        }
+
+        .sound-icon {
+            line-height: 1;
+        }
+
+        /* Context Menu for Sound Selection */
+        .context-menu {
+            position: fixed;
+            background: #1e1f22;
+            border: 1px solid #3f4147;
+            border-radius: 8px;
+            padding: 6px 0;
+            min-width: 160px;
+            z-index: 3000;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            display: none;
+        }
+
+        .context-menu.show {
+            display: block;
+        }
+
+        .context-menu-title {
+            padding: 8px 12px;
+            font-size: 11px;
+            color: #949ba4;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            border-bottom: 1px solid #3f4147;
+            margin-bottom: 4px;
+        }
+
+        .context-menu-item {
+            padding: 8px 12px;
+            font-size: 13px;
+            color: #dcddde;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.1s;
+        }
+
+        .context-menu-item:hover {
+            background: #3f4147;
+        }
+
+        .context-menu-item.selected {
+            color: #23a55a;
+        }
+
+        .context-menu-item.selected::after {
+            content: "✓";
+            font-size: 12px;
+        }
+
+        .context-menu-item .preview-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .context-menu-item .preview-btn:hover {
+            opacity: 1;
+        }
+
         .toggle-switch {
             position: relative;
             width: 32px;
@@ -691,6 +820,17 @@
 
 <body>
     <div class="container">
+        <!-- Sound Selection Context Menu -->
+        <div class="context-menu" id="soundContextMenu">
+            <div class="context-menu-title">🔊 Som do Filtro</div>
+            <div class="context-menu-item" data-sound="ping">Ping <span class="preview-btn" onclick="previewSound('ping', event)">▶</span></div>
+            <div class="context-menu-item" data-sound="bell">Bell <span class="preview-btn" onclick="previewSound('bell', event)">▶</span></div>
+            <div class="context-menu-item" data-sound="chime">Chime <span class="preview-btn" onclick="previewSound('chime', event)">▶</span></div>
+            <div class="context-menu-item" data-sound="alert">Alert <span class="preview-btn" onclick="previewSound('alert', event)">▶</span></div>
+            <div class="context-menu-item" data-sound="notification">Notification <span class="preview-btn" onclick="previewSound('notification', event)">▶</span></div>
+            <div class="context-menu-item" data-sound="pop">Pop <span class="preview-btn" onclick="previewSound('pop', event)">▶</span></div>
+        </div>
+
         <!-- Toast Notification -->
         <div class="toast-notification" id="copyToast">
             <div class="toast-text">✅ Copiado com sucesso!</div>
@@ -709,7 +849,7 @@
 
         <div class="left-column">
             <div class="header">
-                <h1 id="appTitle">Fatal Notifications <span class="version-tag" id="versionTag">v1.0.5</span></h1>
+                <h1 id="appTitle">Fatal Notifications <span class="version-tag" id="versionTag">v1.0.6</span></h1>
                 <div class="status" id="statusBadge">
                     <span class="status-dot"></span>
                     <span id="statusText">Parado</span>
@@ -734,46 +874,52 @@
             </div>
 
             <div class="card">
-                <div class="card-title">🔔 Filtros de Notificação</div>
-                <div class="filters-grid">
-                    <label class="toggle-item">
+                <div class="card-title" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <span>🔔 Filtros de Notificação</span>
+                    <button class="sound-toggle" id="soundToggle" onclick="toggleSound()" title="Som de notificação">
+                        <span class="sound-icon sound-off">🔇</span>
+                        <span class="sound-icon sound-on" style="display:none;">🔊</span>
+                    </button>
+                </div>
+                <div class="filters-grid" id="filtersGrid">
+                    <label class="toggle-item" data-filter="next" oncontextmenu="showSoundMenu(event, 'next')">
                         <div class="toggle-switch">
                             <input type="checkbox" id="filterNext" checked>
                             <span class="toggle-slider"></span>
                         </div>
                         <span class="toggle-label">Next</span>
                     </label>
-                    <label class="toggle-item">
+                    <label class="toggle-item" data-filter="poke" oncontextmenu="showSoundMenu(event, 'poke')">
                         <div class="toggle-switch">
                             <input type="checkbox" id="filterPoke" checked>
                             <span class="toggle-slider"></span>
                         </div>
                         <span class="toggle-label">Pokes diversos</span>
                     </label>
-                    <label class="toggle-item">
+                    <label class="toggle-item" data-filter="hunted_up" oncontextmenu="showSoundMenu(event, 'hunted_up')">
                         <div class="toggle-switch">
-                            <input type="checkbox" id="filterHuntedUp" checked>
+                            <input type="checkbox" id="filterHuntedUp">
                             <span class="toggle-slider"></span>
                         </div>
                         <span class="toggle-label">Hunted upou</span>
                     </label>
-                    <label class="toggle-item">
+                    <label class="toggle-item" data-filter="friend_up" oncontextmenu="showSoundMenu(event, 'friend_up')">
                         <div class="toggle-switch">
-                            <input type="checkbox" id="filterFriendUp" checked>
+                            <input type="checkbox" id="filterFriendUp">
                             <span class="toggle-slider"></span>
                         </div>
                         <span class="toggle-label">Friend upou</span>
                     </label>
-                    <label class="toggle-item">
+                    <label class="toggle-item" data-filter="hunted_death" oncontextmenu="showSoundMenu(event, 'hunted_death')">
                         <div class="toggle-switch">
-                            <input type="checkbox" id="filterHuntedDeath" checked>
+                            <input type="checkbox" id="filterHuntedDeath">
                             <span class="toggle-slider"></span>
                         </div>
                         <span class="toggle-label">Hunted morreu</span>
                     </label>
-                    <label class="toggle-item">
+                    <label class="toggle-item" data-filter="friend_death" oncontextmenu="showSoundMenu(event, 'friend_death')">
                         <div class="toggle-switch">
-                            <input type="checkbox" id="filterFriendDeath" checked>
+                            <input type="checkbox" id="filterFriendDeath">
                             <span class="toggle-slider"></span>
                         </div>
                         <span class="toggle-label">Friend morreu</span>
@@ -811,6 +957,219 @@
         let isRunning = false;
         let pendingUpdateUrl = null;
         let toastTimeout; // Added toast timeout state
+        let soundEnabled = false;
+        let currentContextFilter = null;
+        let filterSounds = {
+            next: 'ping',
+            poke: 'ping',
+            hunted_up: 'ping',
+            friend_up: 'ping',
+            hunted_death: 'ping',
+            friend_death: 'ping'
+        };
+
+        // Audio Context for generating sounds
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+            return audioCtx;
+        }
+
+        // Sound generators using Web Audio API
+        const soundGenerators = {
+            ping: () => {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.3);
+            },
+            bell: () => {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(830, ctx.currentTime);
+                gain.gain.setValueAtTime(0.4, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.8);
+            },
+            chime: () => {
+                const ctx = getAudioContext();
+                [523, 659, 784].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.4);
+                    osc.start(ctx.currentTime + i * 0.1);
+                    osc.stop(ctx.currentTime + i * 0.1 + 0.4);
+                });
+            },
+            alert: () => {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(600, ctx.currentTime);
+                osc.frequency.setValueAtTime(800, ctx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(600, ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.setValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.3);
+            },
+            notification: () => {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(587, ctx.currentTime);
+                osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.5);
+            },
+            pop: () => {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(400, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.4, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.15);
+            }
+        };
+
+        function playSound(soundName) {
+            if (soundGenerators[soundName]) {
+                soundGenerators[soundName]();
+            }
+        }
+
+        function previewSound(soundName, event) {
+            event.stopPropagation();
+            playSound(soundName);
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('soundToggle');
+            const offIcon = btn.querySelector('.sound-off');
+            const onIcon = btn.querySelector('.sound-on');
+            
+            if (soundEnabled) {
+                btn.classList.add('active');
+                offIcon.style.display = 'none';
+                onIcon.style.display = 'inline';
+                playSound('ping'); // Play a sound to confirm
+            } else {
+                btn.classList.remove('active');
+                offIcon.style.display = 'inline';
+                onIcon.style.display = 'none';
+            }
+        }
+
+        function showSoundMenu(event, filterName) {
+            event.preventDefault();
+            currentContextFilter = filterName;
+            
+            const menu = document.getElementById('soundContextMenu');
+            const items = menu.querySelectorAll('.context-menu-item');
+            
+            // Update selected state
+            items.forEach(item => {
+                item.classList.remove('selected');
+                if (item.dataset.sound === filterSounds[filterName]) {
+                    item.classList.add('selected');
+                }
+            });
+            
+            // Show menu first to get its dimensions
+            menu.style.visibility = 'hidden';
+            menu.classList.add('show');
+            
+            const menuRect = menu.getBoundingClientRect();
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            // Calculate position, adjusting if it would go outside viewport
+            let left = event.clientX;
+            let top = event.clientY;
+            
+            // Check right edge
+            if (left + menuRect.width > windowWidth - 10) {
+                left = windowWidth - menuRect.width - 10;
+            }
+            
+            // Check bottom edge
+            if (top + menuRect.height > windowHeight - 10) {
+                top = windowHeight - menuRect.height - 10;
+            }
+            
+            // Ensure not negative
+            left = Math.max(10, left);
+            top = Math.max(10, top);
+            
+            menu.style.left = left + 'px';
+            menu.style.top = top + 'px';
+            menu.style.visibility = 'visible';
+        }
+
+        function hideContextMenu() {
+            document.getElementById('soundContextMenu').classList.remove('show');
+            currentContextFilter = null;
+        }
+
+        function selectSound(soundName) {
+            if (currentContextFilter) {
+                filterSounds[currentContextFilter] = soundName;
+                playSound(soundName);
+            }
+            hideContextMenu();
+        }
+
+        // Close context menu on click elsewhere
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.context-menu')) {
+                hideContextMenu();
+            }
+        });
+
+        // Setup context menu item clicks
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.context-menu-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('preview-btn')) {
+                        selectSound(item.dataset.sound);
+                    }
+                });
+            });
+        });
 
         // Initialize app
         async function initApp() {
@@ -884,6 +1243,22 @@
                 document.getElementById('filterFriendUp').checked = filters.friend_up !== false;
                 document.getElementById('filterHuntedDeath').checked = filters.hunted_death !== false;
                 document.getElementById('filterFriendDeath').checked = filters.friend_death !== false;
+
+                // Load sound settings
+                soundEnabled = settings.sound_enabled || false;
+                if (settings.filter_sounds) {
+                    filterSounds = { ...filterSounds, ...settings.filter_sounds };
+                }
+                
+                // Update sound toggle UI
+                const btn = document.getElementById('soundToggle');
+                const offIcon = btn.querySelector('.sound-off');
+                const onIcon = btn.querySelector('.sound-on');
+                if (soundEnabled) {
+                    btn.classList.add('active');
+                    offIcon.style.display = 'none';
+                    onIcon.style.display = 'inline';
+                }
             }
         }
 
@@ -899,7 +1274,9 @@
                     friend_up: document.getElementById('filterFriendUp').checked,
                     hunted_death: document.getElementById('filterHuntedDeath').checked,
                     friend_death: document.getElementById('filterFriendDeath').checked
-                }
+                },
+                sound_enabled: soundEnabled,
+                filter_sounds: filterSounds
             };
             const result = await window.api.saveSettings(settings);
             if (result) {
@@ -973,10 +1350,22 @@
             }
         }
 
-        // Disable/Enable input fields
+        // Disable/Enable input fields and filters
         function setFieldsDisabled(disabled) {
             document.getElementById('ts3Key').disabled = disabled;
             document.getElementById('pbKey').disabled = disabled;
+            
+            // Disable/enable filter toggles
+            const filtersGrid = document.querySelector('.filters-grid');
+            if (disabled) {
+                filtersGrid.classList.add('disabled');
+            } else {
+                filtersGrid.classList.remove('disabled');
+            }
+            
+            // Also disable the actual checkboxes
+            const filterCheckboxes = filtersGrid.querySelectorAll('input[type="checkbox"]');
+            filterCheckboxes.forEach(cb => cb.disabled = disabled);
         }
 
         // Called when monitoring stops
@@ -1004,6 +1393,7 @@
             let icon = '';
             let msgClass = 'msg-white';
             let cleanMessage = message;
+            let filterType = null; // Track which filter type this is for sound
 
             // Determine styling based on message content
             // Poke and Next Spawn: full yellow message
@@ -1011,10 +1401,12 @@
                 msgClass = 'msg-next';
                 icon = '🔔';
                 cleanMessage = message.replace('[Next Respawn]:', '').trim();
+                filterType = 'next';
             } else if (message.includes('[Poke]')) {
                 msgClass = 'msg-poke';
                 icon = '🔔';
                 cleanMessage = message.replace('[Poke]:', '').trim();
+                filterType = 'poke';
             } 
             // Other notification types: white text with small colored tag
             else if (message.includes('[Friend Up]')) {
@@ -1022,31 +1414,37 @@
                 tagClass = 'tag-green';
                 icon = '⬆️';
                 cleanMessage = message.replace('[Friend Up]:', '').trim();
+                filterType = 'friend_up';
             } else if (message.includes('[Friend Down]')) {
                 tag = 'Friend Down';
                 tagClass = 'tag-red';
                 icon = '⬇️';
                 cleanMessage = message.replace('[Friend Down]:', '').trim();
+                filterType = 'friend_up';
             } else if (message.includes('[Hunted Death]')) {
                 tag = 'Hunted Death';
                 tagClass = 'tag-green';
                 icon = '💀';
                 cleanMessage = message.replace('[Hunted Death]:', '').trim();
+                filterType = 'hunted_death';
             } else if (message.includes('[Friend Death]')) {
                 tag = 'Friend Death';
                 tagClass = 'tag-red';
                 icon = '💀';
                 cleanMessage = message.replace('[Friend Death]:', '').trim();
+                filterType = 'friend_death';
             } else if (message.includes('[Hunted Up]')) {
                 tag = 'Hunted Up';
                 tagClass = 'tag-red';
                 icon = '⬆️';
                 cleanMessage = message.replace('[Hunted Up]:', '').trim();
+                filterType = 'hunted_up';
             } else if (message.includes('[Hunted Down]')) {
                 tag = 'Hunted Down';
                 tagClass = 'tag-green';
                 icon = '⬇️';
                 cleanMessage = message.replace('[Hunted Down]:', '').trim();
+                filterType = 'hunted_up';
             }
 
             // Check for standard errors/info to keep them clean or default
@@ -1066,6 +1464,11 @@
 
             logArea.appendChild(entry);
             logArea.scrollTop = logArea.scrollHeight; // Auto-scroll
+
+            // Play sound if enabled and this is a notification type
+            if (soundEnabled && filterType && filterSounds[filterType]) {
+                playSound(filterSounds[filterType]);
+            }
         }
 
         // Copy log functionality
