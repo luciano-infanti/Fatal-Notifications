@@ -3,10 +3,19 @@ const path = require('path');
 const net = require('net');
 const fs = require('fs');
 const https = require('https');
+const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
+
+// Configure logging
+log.transports.file.level = 'info';
+autoUpdater.logger = log;
+autoUpdater.autoDownload = false; // We will trigger download manually
+autoUpdater.autoInstallOnAppQuit = true;
+
 
 // --- APP INFO ---
 const APP_NAME = 'Fatal Notifications';
-const APP_VERSION = '1.0.0';
+const APP_VERSION = app.getVersion();
 const GITHUB_REPO = 'luciano-infanti/Fatal-Notifications';
 const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 
@@ -111,7 +120,7 @@ function setStatus(isRunning) {
     }
     // Update tray icon tooltip
     if (tray) {
-        tray.setToolTip(`Fatal Notifications - ${isRunning ? 'Running' : 'Stopped'}`);
+        tray.setToolTip(`Fatal Notifications - ${isRunning ? 'Rodando' : 'Parado'}`);
     }
 }
 
@@ -119,12 +128,12 @@ function setStatus(isRunning) {
 function sendPushbulletAlarm(title, message) {
     const pbKey = settings.pb_api_key;
     if (!pbKey) {
-        sendLog('❌ No Pushbullet API Key configured!');
+        sendLog('❌ Nenhuma Chave API Pushbullet configurada!');
         return;
     }
 
     const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    sendLog(`🔔 SENDING [${title}]: ${message.substring(0, 30)}...`);
+    sendLog(`🔔 ENVIANDO [${title}]: ${message.substring(0, 30)}...`);
 
     const postData = JSON.stringify({
         type: 'note',
@@ -146,12 +155,12 @@ function sendPushbulletAlarm(title, message) {
 
     const req = https.request(options, (res) => {
         if (res.statusCode !== 200) {
-            sendLog(`❌ Pushbullet error: ${res.statusCode}`);
+            sendLog(`❌ Erro Pushbullet: ${res.statusCode}`);
         }
     });
 
     req.on('error', (err) => {
-        sendLog(`❌ Connection Error: ${err.message}`);
+        sendLog(`❌ Erro de Conexão: ${err.message}`);
     });
 
     req.write(postData);
@@ -174,7 +183,7 @@ function startMonitoring() {
     let handlerIds = [];
 
     socket.connect(DEFAULT_TS3_PORT, DEFAULT_TS3_IP, () => {
-        sendLog('Connected to TS3 ClientQuery');
+        sendLog('Conectado ao TS3 ClientQuery');
         socket.write(`auth apikey=${ts3Key}\n`);
 
         setTimeout(() => {
@@ -197,7 +206,7 @@ function startMonitoring() {
 
                 if (uniqueIds.length > handlerIds.length) {
                     handlerIds = uniqueIds;
-                    sendLog(`Tabs found: ${handlerIds.join(', ')}`);
+                    sendLog(`Abas encontradas: ${handlerIds.join(', ')}`);
 
                     for (const hid of handlerIds) {
                         socket.write(`clientnotifyregister schandlerid=${hid} event=textchannel\n`);
@@ -205,7 +214,7 @@ function startMonitoring() {
                         socket.write(`clientnotifyregister schandlerid=${hid} event=any\n`);
                     }
 
-                    sendLog(`Ready! Filtering messages from '${TARGET_NAME}'...`);
+                    sendLog(`Pronto! Filtrando mensagens de '${TARGET_NAME}'...`);
                 }
             }
 
@@ -268,13 +277,13 @@ function startMonitoring() {
     });
 
     socket.on('error', (err) => {
-        sendLog(`Connection Failed: ${err.message}`);
+        sendLog(`Falha na Conexão: ${err.message}`);
         stopMonitoring();
     });
 
     socket.on('close', () => {
         if (running) {
-            sendLog('Connection closed');
+            sendLog('Conexão fechada');
             stopMonitoring();
         }
     });
@@ -287,95 +296,81 @@ function stopMonitoring() {
         socket = null;
     }
     setStatus(false);
-    sendLog('Stopped');
+    sendLog('Parado');
 }
 
 // --- AUTO-UPDATE ---
+// --- AUTO-UPDATE ---
 function checkForUpdates() {
     return new Promise((resolve) => {
-        const options = {
-            hostname: 'api.github.com',
-            path: `/repos/${GITHUB_REPO}/releases/latest`,
-            headers: { 'User-Agent': 'FatalNotifications' }
-        };
+        // Use electron-updater to check
+        autoUpdater.checkForUpdates()
+            .then((result) => {
+                // result is UpdateCheckResult | null
+                if (result && result.updateInfo) {
+                    const info = result.updateInfo;
+                    // Check if update is actually available (version > current)
+                    // electron-updater handles version comparison, so if we got here via checkForUpdates and it emits update-available, it's good.
+                    // But here we are calling it explicitly.
 
-        https.get(options, (res) => {
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => {
-                try {
-                    const release = JSON.parse(data);
-                    const latestVersion = (release.tag_name || '').replace(/^v/, '');
+                    // Actually, autoUpdater.checkForUpdates() returns a promise that resolves with the result.
+                    // We need to listen to events or inspect the result.
 
-                    if (latestVersion && latestVersion !== APP_VERSION) {
-                        const exeAsset = (release.assets || []).find(a => a.name.endsWith('.exe'));
-                        if (exeAsset) {
-                            resolve({
-                                available: true,
-                                version: latestVersion,
-                                download_url: exeAsset.browser_download_url,
-                                notes: release.body || ''
-                            });
-                            return;
-                        }
+                    // Let's rely on the result object
+                    const isAvailable = info.version !== APP_VERSION; // simplified check, autoUpdater is smarter but this suffices for the UI flag
+
+                    if (isAvailable) {
+                        resolve({
+                            available: true,
+                            version: info.version,
+                            download_url: '', // autoUpdater handles this
+                            notes: (typeof info.releaseNotes === 'string' ? info.releaseNotes : '') || info.body || ''
+                        });
+                        return;
                     }
-                    resolve({ available: false });
-                } catch {
-                    resolve({ available: false });
                 }
+                resolve({ available: false });
+            })
+            .catch(err => {
+                log.error('Error checking for updates:', err);
+                resolve({ available: false });
             });
-        }).on('error', () => resolve({ available: false }));
     });
 }
 
-function downloadUpdate(url) {
-    const fs = require('fs');
-    const path = require('path');
-    const os = require('os');
-    const { shell } = require('electron');
+// Setup event listeners for autoUpdater to forward to renderer
+autoUpdater.on('download-progress', (progressObj) => {
+    if (mainWindow) {
+        // progressObj: { bytesPerSecond, percent, total, transferred }
+        mainWindow.webContents.send('download-progress', progressObj.percent);
+    }
+});
 
-    const tempDir = os.tmpdir();
-    const destPath = path.join(tempDir, 'FatalNotifications_Update.exe');
-    const file = fs.createWriteStream(destPath);
+autoUpdater.on('update-downloaded', () => {
+    if (mainWindow) {
+        mainWindow.webContents.send('download-complete');
+    }
+    // Automatically quit and install after a small delay or user action?
+    // User logic had: open destPath then quit.
+    // autoUpdater.quitAndInstall() does both.
 
-    https.get(url, (response) => {
-        // Handle redirect if needed
-        if (response.statusCode === 302 || response.statusCode === 301) {
-            downloadUpdate(response.headers.location);
-            return;
-        }
+    // We'll wait for user triggering, but here we just notify completion.
+    // Actually, usually we ask user to restart.
+    // For now, let's keep the existing flow: existing flow runs installer immediately?
+    // The previous code did: shell.openPath(destPath).then(() => setTimeout(() => app.quit(), 1000));
 
-        const totalBytes = parseInt(response.headers['content-length'], 10);
-        let receivedBytes = 0;
+    // We will simulate this:
+    setTimeout(() => {
+        autoUpdater.quitAndInstall();
+    }, 1000);
+});
 
-        response.pipe(file);
+autoUpdater.on('error', (err) => {
+    if (mainWindow) {
+        mainWindow.webContents.send('download-error', err.message);
+    }
+});
 
-        response.on('data', (chunk) => {
-            receivedBytes += chunk.length;
-            if (mainWindow) {
-                const percentage = (receivedBytes / totalBytes) * 100;
-                mainWindow.webContents.send('download-progress', percentage);
-            }
-        });
-
-        file.on('finish', () => {
-            file.close(() => {
-                if (mainWindow) {
-                    mainWindow.webContents.send('download-complete');
-                }
-                // Run the installer/executable
-                shell.openPath(destPath).then(() => {
-                    setTimeout(() => app.quit(), 1000);
-                });
-            });
-        });
-    }).on('error', (err) => {
-        fs.unlink(destPath, () => { }); // Delete the file async. (But we don't check the result)
-        if (mainWindow) {
-            mainWindow.webContents.send('download-error', err.message);
-        }
-    });
-}
 
 // --- SYSTEM TRAY ---
 function createTray() {
@@ -385,11 +380,11 @@ function createTray() {
     );
 
     tray = new Tray(icon);
-    tray.setToolTip('Fatal Notifications - Stopped');
+    tray.setToolTip('Fatal Notifications - Parado');
 
     const contextMenu = Menu.buildFromTemplate([
         {
-            label: 'Show',
+            label: 'Mostrar',
             click: () => {
                 if (mainWindow) {
                     mainWindow.show();
@@ -398,7 +393,7 @@ function createTray() {
             }
         },
         {
-            label: 'Start Monitoring',
+            label: 'Iniciar Monitoramento',
             click: () => {
                 if (!running) {
                     settings = loadSettings();
@@ -407,7 +402,7 @@ function createTray() {
             }
         },
         {
-            label: 'Stop Monitoring',
+            label: 'Parar Monitoramento',
             click: () => {
                 if (running) {
                     stopMonitoring();
@@ -416,7 +411,7 @@ function createTray() {
         },
         { type: 'separator' },
         {
-            label: 'Quit',
+            label: 'Sair',
             click: () => {
                 stopMonitoring();
                 app.quit();
@@ -484,7 +479,7 @@ ipcMain.handle('get-app-info', () => ({ name: APP_NAME, version: APP_VERSION }))
 ipcMain.handle('load-settings', () => loadSettings());
 ipcMain.handle('save-settings', (_, data) => saveSettings(data));
 ipcMain.handle('check-update', () => checkForUpdates());
-ipcMain.handle('download-update', (_, url) => downloadUpdate(url));
+ipcMain.handle('download-update', () => autoUpdater.downloadUpdate());
 ipcMain.handle('start-monitoring', () => { startMonitoring(); });
 ipcMain.handle('stop-monitoring', () => { stopMonitoring(); });
 ipcMain.handle('minimize-to-tray', () => {

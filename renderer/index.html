@@ -45,7 +45,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 1);
             z-index: 1000;
             display: none;
             flex-direction: column;
@@ -381,7 +381,7 @@
     <div class="container">
         <!-- Update Overlay -->
         <div class="update-overlay" id="updateOverlay">
-            <h2 id="updateTitle">Downloading Update...</h2>
+            <h2 id="updateTitle">Baixando Atualização...</h2>
             <div class="progress-bar-container">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
@@ -390,35 +390,35 @@
 
         <!-- Header -->
         <div class="header">
-            <button class="btn-minimize" onclick="minimizeToTray()" title="Minimize to Tray">➖ Tray</button>
+            <button class="btn-minimize" onclick="minimizeToTray()" title="Minimizar para Bandeja">➖ Bandeja</button>
             <h1 id="appTitle">📡 Fatal Notifications <span class="version-tag" id="versionTag">v1.0.0</span></h1>
             <div class="status" id="statusBadge">
                 <span class="status-dot"></span>
-                <span id="statusText">Stopped</span>
+                <span id="statusText">Parado</span>
             </div>
         </div>
 
         <!-- Settings -->
         <div class="card">
-            <div class="card-title">⚙️ API Settings</div>
+            <div class="card-title">⚙️ Configurações da API</div>
             <div class="form-group">
-                <label>TS3 API Key</label>
+                <label>Chave API TS3</label>
                 <div class="form-row">
-                    <input type="text" id="ts3Key" placeholder="e.g. XXXX-XXXX-XXXX-XXXX-XXXX">
+                    <input type="text" id="ts3Key" placeholder="ex. XXXX-XXXX-XXXX-XXXX-XXXX">
                 </div>
             </div>
             <div class="form-group">
-                <label>Pushbullet API Key</label>
+                <label>Chave API Pushbullet</label>
                 <div class="form-row">
-                    <input type="text" id="pbKey" placeholder="Your Pushbullet Access Token">
-                    <button class="btn btn-primary" onclick="saveSettings()">💾 Save</button>
+                    <input type="text" id="pbKey" placeholder="Seu Token de Acesso Pushbullet">
+                    <button class="btn btn-primary" onclick="saveSettings()">💾 Salvar</button>
                 </div>
             </div>
         </div>
 
         <!-- Filters -->
         <div class="card">
-            <div class="card-title">🔔 Notification Filters</div>
+            <div class="card-title">🔔 Filtros de Notificação</div>
             <div class="filters-grid">
                 <label class="toggle-item">
                     <div class="toggle-switch">
@@ -467,19 +467,19 @@
 
         <!-- Activity Log -->
         <div class="card log-card">
-            <div class="card-title">📋 Activity Log</div>
+            <div class="card-title">📋 Registro de Atividades</div>
             <div class="log-area" id="logArea">
-                <div class="log-entry"><span class="log-time">[--:--:--]</span>Ready to start...</div>
+                <div class="log-entry"><span class="log-time">[--:--:--]</span>Pronto para iniciar...</div>
             </div>
         </div>
 
         <!-- Controls -->
         <div class="controls">
             <button class="btn btn-success btn-control" id="btnStart" onclick="startMonitoring()">
-                ▶️ Start Monitoring
+                ▶️ Iniciar Monitoramento
             </button>
             <button class="btn btn-danger btn-control" id="btnStop" onclick="stopMonitoring()" disabled>
-                ⏹️ Stop
+                ⏹️ Parar
             </button>
         </div>
     </div>
@@ -518,12 +518,12 @@
             });
 
             window.api.onDownloadComplete(() => {
-                document.getElementById('updateTitle').textContent = 'Installing Update...';
-                document.getElementById('updateStatus').textContent = 'Restarting app...';
+                document.getElementById('updateTitle').textContent = 'Instalando Atualização...';
+                document.getElementById('updateStatus').textContent = 'Reiniciando aplicação...';
             });
 
             window.api.onDownloadError((err) => {
-                document.getElementById('updateTitle').textContent = 'Update Failed!';
+                document.getElementById('updateTitle').textContent = 'Falha na Atualização!';
                 document.getElementById('updateStatus').textContent = err;
                 setTimeout(() => {
                     document.getElementById('updateOverlay').classList.remove('show');
@@ -540,7 +540,7 @@
         // Start the update process
         function startUpdateProcess(version, url) {
             document.getElementById('updateOverlay').classList.add('show');
-            document.getElementById('updateTitle').textContent = `Downloading Update v${version}...`;
+            document.getElementById('updateTitle').textContent = `Baixando Atualização v${version}...`;
             window.api.downloadUpdate(url);
         }
 
@@ -577,9 +577,9 @@
             };
             const result = await window.api.saveSettings(settings);
             if (result) {
-                addLog('✅ Settings saved!');
+                addLog('✅ Configurações salvas!');
             } else {
-                addLog('❌ Failed to save settings');
+                addLog('❌ Falha ao salvar configurações');
             }
         }
 
@@ -587,7 +587,7 @@
         async function startMonitoring() {
             const ts3Key = document.getElementById('ts3Key').value;
             if (!ts3Key) {
-                addLog('❌ Please enter TS3 API Key first!');
+                addLog('❌ Por favor insira a Chave API TS3 primeiro!');
                 return;
             }
 
@@ -614,10 +614,10 @@
 
             if (running) {
                 badge.classList.add('running');
-                text.textContent = 'Running';
+                text.textContent = 'Rodando';
             } else {
                 badge.classList.remove('running');
-                text.textContent = 'Stopped';
+                text.textContent = 'Parado';
             }
         }
 
