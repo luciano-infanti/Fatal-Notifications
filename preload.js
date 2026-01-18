@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('api', {
     stopMonitoring: () => ipcRenderer.invoke('stop-monitoring'),
     minimizeToTray: () => ipcRenderer.invoke('minimize-to-tray'),
     downloadUpdate: (url) => ipcRenderer.invoke('download-update', url),
+    openExternal: (url) => ipcRenderer.invoke('open-external', url),
 
     onLog: (callback) => ipcRenderer.on('log', (_, message) => callback(message)),
     onStatus: (callback) => ipcRenderer.on('status', (_, isRunning) => callback(isRunning)),
