@@ -1,12 +1,25 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, shell } = require('electron');
 const path = require('path');
 const net = require('net');
 const fs = require('fs');
 const https = require('https');
+const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
+
+// Suppress GPU cache errors on Windows
+app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
+app.commandLine.appendSwitch('disable-gpu-program-cache');
+
+// Configure logging
+log.transports.file.level = 'info';
+autoUpdater.logger = log;
+autoUpdater.autoDownload = false; // We will trigger download manually
+autoUpdater.autoInstallOnAppQuit = true;
+
 
 // --- APP INFO ---
 const APP_NAME = 'Fatal Notifications';
-const APP_VERSION = '1.0.0';
+const APP_VERSION = app.getVersion();
 const GITHUB_REPO = 'luciano-infanti/Fatal-Notifications';
 const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 
@@ -31,10 +44,19 @@ function loadSettings() {
         filters: {
             next: true,
             poke: true,
-            hunted_up: true,
-            friend_up: true,
-            hunted_death: true,
-            friend_death: true
+            hunted_up: false,
+            friend_up: false,
+            hunted_death: false,
+            friend_death: false
+        },
+        sound_enabled: false,
+        filter_sounds: {
+            next: 'ping',
+            poke: 'ping',
+            hunted_up: 'ping',
+            friend_up: 'ping',
+            hunted_death: 'ping',
+            friend_death: 'ping'
         }
     };
 
@@ -111,20 +133,32 @@ function setStatus(isRunning) {
     }
     // Update tray icon tooltip
     if (tray) {
-        tray.setToolTip(`Fatal Notifications - ${isRunning ? 'Running' : 'Stopped'}`);
+        tray.setToolTip(`Fatal Notifications - ${isRunning ? 'Rodando' : 'Pausado'}`);
     }
 }
 
 // --- PUSHBULLET ---
+// --- PUSHBULLET ---
 function sendPushbulletAlarm(title, message) {
     const pbKey = settings.pb_api_key;
     if (!pbKey) {
-        sendLog('❌ No Pushbullet API Key configured!');
+        sendLog('❌ Erro: Chave API do Pushbullet não configurada! Verifique as configurações.');
         return;
     }
 
     const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    sendLog(`🔔 SENDING [${title}]: ${message.substring(0, 30)}...`);
+    
+    // Split combined messages (e.g., "Player1 upou > 400, Player2 upou > 500") into individual log entries
+    if (message.includes(', ') && (message.includes('upou') || message.includes('died') || message.includes('morreu'))) {
+        const entries = message.split(', ');
+        for (const entry of entries) {
+            if (entry.trim()) {
+                sendLog(`[${title}]: ${entry.trim()}`);
+            }
+        }
+    } else {
+        sendLog(`[${title}]: ${message}`);
+    }
 
     const postData = JSON.stringify({
         type: 'note',
@@ -145,13 +179,19 @@ function sendPushbulletAlarm(title, message) {
     };
 
     const req = https.request(options, (res) => {
-        if (res.statusCode !== 200) {
-            sendLog(`❌ Pushbullet error: ${res.statusCode}`);
+        if (res.statusCode === 200) {
+            // Success, quiet or verify? we can assume success.
+        } else if (res.statusCode === 401 || res.statusCode === 403) {
+            sendLog(`❌ Erro Pushbullet (${res.statusCode}): Chave API inválida ou expirada.`);
+        } else if (res.statusCode === 400) {
+            sendLog(`❌ Erro Pushbullet (400): Requisição inválida.`);
+        } else {
+            sendLog(`❌ Erro Pushbullet: Falha no envio (Código: ${res.statusCode}).`);
         }
     });
 
     req.on('error', (err) => {
-        sendLog(`❌ Connection Error: ${err.message}`);
+        sendLog(`❌ Erro de Conexão Pushbullet: ${err.message}`);
     });
 
     req.write(postData);
@@ -161,25 +201,38 @@ function sendPushbulletAlarm(title, message) {
 // --- TS3 MONITORING ---
 function startMonitoring() {
     if (running) return;
+
+    // 1. Validation Pre-Check
+    const ts3Key = settings.ts3_api_key;
+    const pbKey = settings.pb_api_key;
+
+    if (!ts3Key) {
+        sendLog('❌ Erro Crítico: Chave API do Teamspeak não informada! Configure-a nas opções.');
+        setStatus(false);
+        return;
+    }
+    if (!pbKey) {
+        sendLog('❌ Erro Crítico: Chave API do Pushbullet não informada! Configure-a nas opções.');
+        setStatus(false);
+        return;
+    }
+
     running = true;
     setStatus(true);
 
-    const ts3Key = settings.ts3_api_key;
     const filters = settings.filters || {};
 
     socket = new net.Socket();
-    socket.setTimeout(1000);
+    socket.setTimeout(5000); // 5s timeout for initial connection
 
     let buffer = '';
     let handlerIds = [];
 
+    // Attempt connection
     socket.connect(DEFAULT_TS3_PORT, DEFAULT_TS3_IP, () => {
-        sendLog('Connected to TS3 ClientQuery');
+        sendLog('✅ Conexão TCP estabelecida com Teamspeak.');
+        sendLog('🔐 Tentando autenticação...');
         socket.write(`auth apikey=${ts3Key}\n`);
-
-        setTimeout(() => {
-            socket.write('serverconnectionhandlerlist\n');
-        }, 500);
     });
 
     socket.on('data', (data) => {
@@ -188,6 +241,51 @@ function startMonitoring() {
         while (buffer.includes('\n')) {
             const [line, ...rest] = buffer.split('\n');
             buffer = rest.join('\n');
+            const trimmedLine = line.trim();
+            if (!trimmedLine) continue;
+
+            // --- Error / Status Handling ---
+            if (trimmedLine.startsWith('error')) {
+                const dataMap = parseTs3Response(trimmedLine);
+                const id = parseInt(dataMap.id, 10);
+                const msg = dataMap.msg;
+
+                if (id !== 0) {
+                    if (id === 520) { // invalid login/pwd (or api key)
+                        sendLog(`❌ Erro de Autenticação: Chave API Inválida! (ID: 520). Verifique sua chave.`);
+                    } else if (id === 2568) { // insufficient permissions (sometimes happens)
+                        sendLog(`❌ Erro de Permissão (ID: 2568): ${msg}`);
+                    } else {
+                        sendLog(`❌ Erro TS3: ${msg} (ID: ${id})`);
+                    }
+                    stopMonitoring(); // Critical failure, stop.
+                    return;
+                }
+
+                // If id==0, it's a success message for the previous command.
+                // We can use this to chain logic if strictly needed, or stick to timeouts/flow.
+                // For 'auth', a successful auth returns error id=0.
+            }
+
+            // --- Logic Flow ---
+            // After auth (we assume it worked if no error came immediately, but 'error id=0' confirms it),
+            // we request the handler list.
+            // A simple heuristic: if we just authed, we can schedule the next check.
+            // Ideally we wait for 'error id=0' after auth to proceed.
+            // Let's rely on the previous timeout approach vs explicit parsing for simplicity, 
+            // OR strictly parse 'error id=0'. Let's stick to the robust 'error id=...'.
+
+            // Check success of AUTH
+            if (trimmedLine.includes('error id=0') && handlerIds.length === 0) {
+                // Auth likely successful, or some other command. 
+                // We'll just ensure we request list if we haven't already.
+                // To avoid spam, let's just trigger the list request slightly after connect.
+                // Actually, let's trigger it NOW.
+                setTimeout(() => {
+                    if (running) socket.write('serverconnectionhandlerlist\n');
+                }, 200);
+            }
+
 
             // Extract handler IDs
             const handlerMatch = line.match(/schandlerid=(\d+)/g);
@@ -197,7 +295,7 @@ function startMonitoring() {
 
                 if (uniqueIds.length > handlerIds.length) {
                     handlerIds = uniqueIds;
-                    sendLog(`Tabs found: ${handlerIds.join(', ')}`);
+                    sendLog(`✅ Abas encontradas: ${handlerIds.join(', ')}`);
 
                     for (const hid of handlerIds) {
                         socket.write(`clientnotifyregister schandlerid=${hid} event=textchannel\n`);
@@ -205,7 +303,7 @@ function startMonitoring() {
                         socket.write(`clientnotifyregister schandlerid=${hid} event=any\n`);
                     }
 
-                    sendLog(`Ready! Filtering messages from '${TARGET_NAME}'...`);
+                    sendLog(`🚀 Monitoramento Iniciado em '${TARGET_NAME}'!`);
                 }
             }
 
@@ -234,24 +332,29 @@ function startMonitoring() {
                 else if (line.includes('notifytextmessage')) {
                     const isDeath = ['died', 'death', 'morreu', 'killed'].some(x => msgLower.includes(x));
 
+                    // Strip redundant prefixes requested by user
+                    // Regex covers: "FRIEND UP:", "FRIEND DEATH:", "HUNTED UP:", "HUNTED DEATH:" (case insensitive)
+                    // Added "DOWN" variants just in case.
+                    const finalMsg = cleanMsg.replace(/^(FRIEND UP|FRIEND DEATH|FRIEND DOWN|HUNTED UP|HUNTED DEATH|HUNTED DOWN):\s*/i, '');
+
                     if (msgLower.includes('hunted')) {
                         if (isDeath) {
                             if (filters.hunted_death !== false) {
-                                sendPushbulletAlarm('Hunted Death', cleanMsg);
+                                sendPushbulletAlarm('Hunted Death', finalMsg);
                             }
                         } else {
                             if (filters.hunted_up !== false) {
-                                sendPushbulletAlarm('Hunted Up', cleanMsg);
+                                sendPushbulletAlarm('Hunted Up', finalMsg);
                             }
                         }
                     } else if (msgLower.includes('friend')) {
                         if (isDeath) {
                             if (filters.friend_death !== false) {
-                                sendPushbulletAlarm('Friend Death', cleanMsg);
+                                sendPushbulletAlarm('Friend Death', finalMsg);
                             }
                         } else {
                             if (filters.friend_up !== false) {
-                                sendPushbulletAlarm('Friend Up', cleanMsg);
+                                sendPushbulletAlarm('Friend Up', finalMsg);
                             }
                         }
                     }
@@ -268,13 +371,18 @@ function startMonitoring() {
     });
 
     socket.on('error', (err) => {
-        sendLog(`Connection Failed: ${err.message}`);
+        if (err.code === 'ECONNREFUSED') {
+            sendLog('❌ Erro Crítico: Não foi possível conectar ao Teamspeak (127.0.0.1:25639).');
+            sendLog('👉 Verifique se o Cliente TS3 está ABERTO e o plugin ClientQuery ativado.');
+        } else {
+            sendLog(`❌ Erro de Conexão TS3: ${err.message}`); // General error
+        }
         stopMonitoring();
     });
 
     socket.on('close', () => {
         if (running) {
-            sendLog('Connection closed');
+            sendLog('⚠️ A conexão com o Teamspeak foi encerrada.');
             stopMonitoring();
         }
     });
@@ -287,46 +395,81 @@ function stopMonitoring() {
         socket = null;
     }
     setStatus(false);
-    sendLog('Stopped');
+    sendLog('⏹️ Monitoramento Pausado.');
 }
 
 // --- AUTO-UPDATE ---
+// --- AUTO-UPDATE ---
 function checkForUpdates() {
     return new Promise((resolve) => {
-        const options = {
-            hostname: 'api.github.com',
-            path: `/repos/${GITHUB_REPO}/releases/latest`,
-            headers: { 'User-Agent': 'FatalNotifications' }
-        };
+        // Use electron-updater to check
+        autoUpdater.checkForUpdates()
+            .then((result) => {
+                // result is UpdateCheckResult | null
+                if (result && result.updateInfo) {
+                    const info = result.updateInfo;
+                    // Check if update is actually available (version > current)
+                    // electron-updater handles version comparison, so if we got here via checkForUpdates and it emits update-available, it's good.
+                    // But here we are calling it explicitly.
 
-        https.get(options, (res) => {
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => {
-                try {
-                    const release = JSON.parse(data);
-                    const latestVersion = (release.tag_name || '').replace(/^v/, '');
+                    // Actually, autoUpdater.checkForUpdates() returns a promise that resolves with the result.
+                    // We need to listen to events or inspect the result.
 
-                    if (latestVersion && latestVersion !== APP_VERSION) {
-                        const exeAsset = (release.assets || []).find(a => a.name.endsWith('.exe'));
-                        if (exeAsset) {
-                            resolve({
-                                available: true,
-                                version: latestVersion,
-                                download_url: exeAsset.browser_download_url,
-                                notes: release.body || ''
-                            });
-                            return;
-                        }
+                    // Let's rely on the result object
+                    const isAvailable = info.version !== APP_VERSION; // simplified check, autoUpdater is smarter but this suffices for the UI flag
+
+                    if (isAvailable) {
+                        resolve({
+                            available: true,
+                            version: info.version,
+                            download_url: '', // autoUpdater handles this
+                            notes: (typeof info.releaseNotes === 'string' ? info.releaseNotes : '') || info.body || ''
+                        });
+                        return;
                     }
-                    resolve({ available: false });
-                } catch {
-                    resolve({ available: false });
                 }
+                resolve({ available: false });
+            })
+            .catch(err => {
+                log.error('Error checking for updates:', err);
+                resolve({ available: false });
             });
-        }).on('error', () => resolve({ available: false }));
     });
 }
+
+// Setup event listeners for autoUpdater to forward to renderer
+autoUpdater.on('download-progress', (progressObj) => {
+    if (mainWindow) {
+        // progressObj: { bytesPerSecond, percent, total, transferred }
+        mainWindow.webContents.send('download-progress', progressObj.percent);
+    }
+});
+
+autoUpdater.on('update-downloaded', () => {
+    if (mainWindow) {
+        mainWindow.webContents.send('download-complete');
+    }
+    // Automatically quit and install after a small delay or user action?
+    // User logic had: open destPath then quit.
+    // autoUpdater.quitAndInstall() does both.
+
+    // We'll wait for user triggering, but here we just notify completion.
+    // Actually, usually we ask user to restart.
+    // For now, let's keep the existing flow: existing flow runs installer immediately?
+    // The previous code did: shell.openPath(destPath).then(() => setTimeout(() => app.quit(), 1000));
+
+    // We will simulate this:
+    setTimeout(() => {
+        autoUpdater.quitAndInstall();
+    }, 1000);
+});
+
+autoUpdater.on('error', (err) => {
+    if (mainWindow) {
+        mainWindow.webContents.send('download-error', err.message);
+    }
+});
+
 
 // --- SYSTEM TRAY ---
 function createTray() {
@@ -336,11 +479,11 @@ function createTray() {
     );
 
     tray = new Tray(icon);
-    tray.setToolTip('Fatal Notifications - Stopped');
+    tray.setToolTip('Fatal Notifications - Pausado');
 
     const contextMenu = Menu.buildFromTemplate([
         {
-            label: 'Show',
+            label: 'Mostrar',
             click: () => {
                 if (mainWindow) {
                     mainWindow.show();
@@ -349,7 +492,7 @@ function createTray() {
             }
         },
         {
-            label: 'Start Monitoring',
+            label: 'Iniciar Monitoramento',
             click: () => {
                 if (!running) {
                     settings = loadSettings();
@@ -358,7 +501,7 @@ function createTray() {
             }
         },
         {
-            label: 'Stop Monitoring',
+            label: 'Parar Monitoramento',
             click: () => {
                 if (running) {
                     stopMonitoring();
@@ -367,7 +510,7 @@ function createTray() {
         },
         { type: 'separator' },
         {
-            label: 'Quit',
+            label: 'Sair',
             click: () => {
                 stopMonitoring();
                 app.quit();
@@ -389,9 +532,9 @@ function createTray() {
 // --- ELECTRON APP ---
 function createWindow() {
     mainWindow = new BrowserWindow({
-        width: 720,
-        height: 750,  // Slightly smaller to fit content without scrollbar
-        resizable: false,  // Prevent resizing
+        width: 1100,
+        height: 750,
+        resizable: false, // Fixed window size
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
@@ -435,8 +578,12 @@ ipcMain.handle('get-app-info', () => ({ name: APP_NAME, version: APP_VERSION }))
 ipcMain.handle('load-settings', () => loadSettings());
 ipcMain.handle('save-settings', (_, data) => saveSettings(data));
 ipcMain.handle('check-update', () => checkForUpdates());
+ipcMain.handle('download-update', () => autoUpdater.downloadUpdate());
 ipcMain.handle('start-monitoring', () => { startMonitoring(); });
 ipcMain.handle('stop-monitoring', () => { stopMonitoring(); });
 ipcMain.handle('minimize-to-tray', () => {
     if (mainWindow) mainWindow.hide();
+});
+ipcMain.handle('open-external', (_, url) => {
+    return shell.openExternal(url);
 });

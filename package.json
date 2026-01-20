@@ -1,12 +1,13 @@
 {
   "name": "fatal-notifications",
-  "version": "1.0.0",
+  "version": "1.0.6",
   "description": "A desktop app that monitors TeamSpeak 3 for bot messages and sends push notifications via Pushbullet.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win portable",
-    "build:exe": "electron-builder --win nsis"
+    "clean": "if exist dist rmdir /s /q dist",
+    "build": "npm run clean && electron-builder --win",
+    "build:exe": "npm run clean && electron-builder --win nsis"
   },
   "author": "sickn33",
   "license": "MIT",
@@ -30,11 +31,22 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "artifactName": "${productName} Setup ${version}.${ext}"
-    }
+      "artifactName": "Fatal-Notifications-Setup-${version}.${ext}"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "luciano-infanti",
+        "repo": "Fatal-Notifications"
+      }
+    ]
   },
   "devDependencies": {
     "electron": "^40.0.0",
     "electron-builder": "^26.4.0"
+  },
+  "dependencies": {
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.7.3"
   }
 }

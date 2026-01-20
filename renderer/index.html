@@ -24,152 +24,175 @@
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: #1e1f22;
             color: #ffffff;
-            padding: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Custom Scrollbar for Webkit (Chrome/Safari/New Edge) */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #2b2d31;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #1a1b1e;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5865f2;
         }
 
         .container {
-            max-width: 700px;
+            max-width: 1100px;
+            /* Matched to window width */
             margin: 0 auto;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            /* Fixed left, fluid right for larger Log area */
+            gap: 20px;
         }
 
-        /* Update Banner */
-        .update-banner {
-            background: linear-gradient(135deg, #5865f2, #7289da);
-            border-radius: 12px;
-            padding: 14px 18px;
-            margin-bottom: 15px;
+        /* Update Overlay */
+        .update-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
             display: none;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            animation: slideDown 0.3s ease-out;
+            justify-content: center;
+            text-align: center;
+            backdrop-filter: blur(5px);
         }
 
-        .update-banner.show {
+        .update-overlay.show {
             display: flex;
         }
 
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .progress-bar-container {
+            width: 300px;
+            height: 6px;
+            background: #2b2d31;
+            border-radius: 10px;
+            margin-top: 24px;
+            overflow: hidden;
         }
 
-        .update-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .progress-bar {
+            height: 100%;
+            background: #5865f2;
+            width: 0%;
+            transition: width 0.2s ease-out;
+            box-shadow: none;
+            /* No shadow */
         }
 
-        .update-icon {
-            font-size: 24px;
-        }
-
-        .update-text h3 {
+        .update-status {
+            margin-top: 12px;
             font-size: 14px;
-            font-weight: 600;
+            color: #b5bac1;
+            font-variant-numeric: tabular-nums;
         }
 
-        .update-text p {
-            font-size: 12px;
-            opacity: 0.9;
-        }
-
-        .btn-update {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-update:hover {
-            background: rgba(255, 255, 255, 0.3);
+        /* Columns */
+        .left-column,
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 0;
+            width: 100%;
         }
 
         /* Header */
         .header {
             background: #2b2d31;
             border-radius: 12px;
-            padding: 14px;
+            padding: 16px;
             text-align: center;
-            margin-bottom: 10px;
             position: relative;
+            box-shadow: none;
+            /* No shadow */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .btn-minimize {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #4f545c;
-            border: none;
-            color: #b5bac1;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-minimize:hover {
-            background: #5865f2;
-            color: white;
-        }
 
         .header h1 {
             font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 8px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.5px;
         }
 
         .version-tag {
-            font-size: 11px;
-            background: #5865f2;
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-left: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            background: #4f545c;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 2px;
             vertical-align: middle;
+            text-transform: uppercase;
         }
 
         .status {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            font-size: 14px;
-            padding: 6px 12px;
+            font-size: 13px;
+            padding: 4px 12px;
             border-radius: 20px;
-            background: #313338;
+            background: #1e1f22;
+            border: 1px solid #3f4147;
+            margin-top: 4px;
         }
 
         .status-dot {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: #f23f43;
+            transition: background 0.3s;
         }
 
         .status.running .status-dot {
             background: #23a55a;
-            animation: pulse 1.5s infinite;
+            box-shadow: 0 0 8px rgba(35, 165, 90, 0.5);
+            animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-
-            0%,
-            100% {
+            0% {
+                transform: scale(0.95);
                 opacity: 1;
             }
 
             50% {
-                opacity: 0.5;
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(0.95);
+                opacity: 1;
             }
         }
 
@@ -177,15 +200,18 @@
         .card {
             background: #2b2d31;
             border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 10px;
+            padding: 20px;
+            box-shadow: none;
+            /* No shadow */
         }
 
         .card-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #b5bac1;
-            margin-bottom: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #949ba4;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -193,36 +219,43 @@
 
         /* Form Elements */
         .form-group {
-            margin-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
         }
 
         .form-group label {
             display: block;
-            font-size: 12px;
+            font-size: 11px;
             color: #b5bac1;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-weight: 600;
         }
 
         .form-group input {
             width: 100%;
-            padding: 10px 14px;
+            padding: 12px;
             background: #1e1f22;
-            border: 2px solid #3f4147;
-            border-radius: 8px;
+            border: 1px solid #1e1f22;
+            border-radius: 6px;
             color: #ffffff;
-            font-size: 14px;
-            transition: border-color 0.2s;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            transition: all 0.2s;
         }
 
         .form-group input:focus {
             outline: none;
             border-color: #5865f2;
+            background: #111214;
         }
 
         .form-group input:disabled {
-            opacity: 0.5;
+            opacity: 0.6;
             cursor: not-allowed;
         }
 
@@ -230,21 +263,24 @@
             display: grid;
             grid-template-columns: 1fr auto;
             gap: 12px;
-            align-items: end;
+            align-items: center;
         }
 
         /* Buttons */
         .btn {
             padding: 10px 20px;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 6px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
+            height: 42px;
+            /* Uniform height */
         }
 
         .btn-primary {
@@ -254,8 +290,11 @@
 
         .btn-primary:hover {
             background: #4752c4;
+
         }
 
+
+        /* Start/Stop Buttons */
         .btn-success {
             background: #23a55a;
             color: white;
@@ -265,40 +304,180 @@
             background: #1a8f4d;
         }
 
-        .btn-danger {
-            background: #f23f43;
-            color: white;
+        .btn-ghost {
+            background: transparent;
+            color: #ffffff;
+            border: 1px solid #4f545c;
         }
 
-        .btn-danger:hover {
-            background: #d32f33;
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #b5bac1;
         }
 
-        .btn:disabled {
-            opacity: 0.5;
+        .btn-ghost:disabled {
+            opacity: 0.4;
             cursor: not-allowed;
+            border-color: #3f4147;
         }
 
         /* Toggle Switches */
         .filters-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
         }
 
         .toggle-item {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 8px 12px;
-            background: #313338;
+            padding: 10px;
+            background: #1e1f22;
             border-radius: 8px;
+            border: 1px solid transparent;
+            transition: border-color 0.2s;
+            cursor: pointer;
+        }
+
+        .toggle-item:hover {
+            border-color: #3f4147;
+        }
+
+        .filters-grid.disabled .toggle-item {
+            opacity: 0.5;
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .filters-grid.disabled .toggle-item:hover {
+            border-color: transparent;
+        }
+
+        .filters-grid.disabled .toggle-item::after {
+            content: "Pause o aplicativo para alterar";
+            position: absolute;
+            bottom: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111214;
+            color: #ffffff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 100;
+            border: 1px solid #3f4147;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .filters-grid.disabled .toggle-item:hover::after {
+            opacity: 1;
+        }
+
+        /* Sound Toggle */
+        .sound-toggle {
+            background: #1e1f22;
+            border: 1px solid #3f4147;
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sound-toggle:hover {
+            background: #3f4147;
+            border-color: #5865f2;
+        }
+
+        .sound-toggle.active {
+            background: rgba(35, 165, 90, 0.15);
+            border-color: #23a55a;
+        }
+
+        .sound-icon {
+            line-height: 1;
+        }
+
+        /* Context Menu for Sound Selection */
+        .context-menu {
+            position: fixed;
+            background: #1e1f22;
+            border: 1px solid #3f4147;
+            border-radius: 8px;
+            padding: 6px 0;
+            min-width: 160px;
+            z-index: 3000;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            display: none;
+        }
+
+        .context-menu.show {
+            display: block;
+        }
+
+        .context-menu-title {
+            padding: 8px 12px;
+            font-size: 11px;
+            color: #949ba4;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            border-bottom: 1px solid #3f4147;
+            margin-bottom: 4px;
+        }
+
+        .context-menu-item {
+            padding: 8px 12px;
+            font-size: 13px;
+            color: #dcddde;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.1s;
+        }
+
+        .context-menu-item:hover {
+            background: #3f4147;
+        }
+
+        .context-menu-item.selected {
+            color: #23a55a;
+        }
+
+        .context-menu-item.selected::after {
+            content: "✓";
+            font-size: 12px;
+        }
+
+        .context-menu-item .preview-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .context-menu-item .preview-btn:hover {
+            opacity: 1;
         }
 
         .toggle-switch {
             position: relative;
-            width: 44px;
-            height: 24px;
+            width: 32px;
+            height: 18px;
+            flex-shrink: 0;
         }
 
         .toggle-switch input {
@@ -315,182 +494,461 @@
             right: 0;
             bottom: 0;
             background: #4f545c;
-            border-radius: 24px;
-            transition: 0.3s;
+            border-radius: 20px;
+            transition: 0.2s;
         }
 
         .toggle-slider:before {
             content: "";
             position: absolute;
-            height: 18px;
-            width: 18px;
+            height: 12px;
+            width: 12px;
             left: 3px;
             bottom: 3px;
             background: white;
             border-radius: 50%;
-            transition: 0.3s;
+            transition: 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
         }
 
         .toggle-switch input:checked+.toggle-slider {
-            background: #5865f2;
+            background: #23a55a;
+            /* Green for active filters looks better */
         }
 
         .toggle-switch input:checked+.toggle-slider:before {
-            transform: translateX(20px);
+            transform: translateX(14px);
         }
 
         .toggle-label {
             font-size: 13px;
             color: #dcddde;
+            font-weight: 500;
         }
 
         /* Activity Log */
+        .card.log-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            border: 1px solid #1e1f22;
+            /* Slight border definition */
+        }
+
         .log-area {
-            background: #1e1f22;
-            border-radius: 8px;
-            padding: 10px;
-            height: 120px;
+            background: #111214;
+            /* Darker background for contrast */
+            border-radius: 6px;
+            padding: 12px;
+            flex: 1;
             overflow-y: auto;
             font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 11px;
+            font-size: 12px;
+            line-height: 1.5;
             color: #b5bac1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            border: 1px solid #1e1f22;
+        }
+
+        .btn-clear {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px;
+            border-radius: 4px;
+            opacity: 0.6;
+            transition: all 0.2s;
+        }
+
+        .btn-clear:hover {
+            opacity: 1;
+            background: #3f4147;
         }
 
         .log-entry {
-            padding: 4px 0;
-            border-bottom: 1px solid #2b2d31;
+            padding: 4px 8px;
+            border-radius: 4px;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transition: background 0.1s;
         }
 
-        .log-entry:last-child {
-            border-bottom: none;
+        .log-entry:hover {
+            background: #2b2d31;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* Copy icon/tooltip */
+        .log-entry::after {
+            content: "Copiar";
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            font-size: 10px;
+            background: #5865f2;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+
+        .log-entry:hover::after {
+            opacity: 1;
         }
 
         .log-time {
-            color: #5865f2;
-            margin-right: 8px;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .log-message {
+            word-break: break-word;
         }
 
         /* Control Buttons */
         .controls {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            grid-template-columns: 1fr 2fr;
+            gap: 16px;
         }
 
-        .btn-control {
-            padding: 14px;
-            font-size: 15px;
+        .btn-running {
+            background: rgba(35, 165, 90, 0.1) !important;
+            border: 1px solid rgba(35, 165, 90, 0.15) !important;
+            color: #23a55a !important;
+            cursor: default;
+        }
+
+        .btn-paused {
+            background: rgba(242, 63, 67, 0.1) !important;
+            border: 1px solid rgba(242, 63, 67, 0.15) !important;
+            color: #f23f43 !important;
+            cursor: default;
+        }
+
+        .btn-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .btn-dot.green {
+            background: #23a55a;
+            box-shadow: 0 0 8px rgba(35, 165, 90, 0.5);
+            animation: pulse-green 2s infinite;
+        }
+
+        .btn-dot.red {
+            background: #f23f43;
+            box-shadow: 0 0 8px rgba(242, 63, 67, 0.5);
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% {
+                transform: scale(0.95);
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(35, 165, 90, 0.7);
+            }
+
+            70% {
+                transform: scale(1);
+                opacity: 1;
+                box-shadow: 0 0 0 6px rgba(35, 165, 90, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(35, 165, 90, 0);
+            }
+        }
+
+        @keyframes pulse-red {
+            0% {
+                transform: scale(0.95);
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(242, 63, 67, 0.7);
+            }
+
+            70% {
+                transform: scale(1);
+                opacity: 1;
+                box-shadow: 0 0 0 6px rgba(242, 63, 67, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(242, 63, 67, 0);
+            }
+        }
+
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2b2d31;
+            color: #ffffff;
+            padding: 16px 20px;
+            border-radius: 8px;
+            border: 1px solid #23a55a;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 250px;
+            z-index: 2000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .toast-notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .log-text {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Message Colors - White text with colored tags */
+        .msg-next {
+            color: #f1c40f;
+        }
+
+        .msg-poke {
+            color: #f1c40f;
+        }
+
+        .msg-white {
+            color: #ffffff;
+        }
+
+        /* Small colored tags */
+        .log-tag {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 6px;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .tag-green {
+            background: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+
+        .tag-red {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+
+        .tag-yellow {
+            background: rgba(241, 196, 15, 0.15);
+            color: #f1c40f;
+            border: 1px solid rgba(241, 196, 15, 0.3);
+        }
+
+        .toast-text {
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast-progress-bg {
+            width: 100%;
+            height: 4px;
+            background: #40444b;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .toast-progress-bar {
+            height: 100%;
+            background: #23a55a;
+            width: 100%;
+            transition: width linear;
+        }
+
+        .player-link {
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: bold;
+            color: inherit;
+            /* Inherit color from parent (red/green/yellow) */
+            transition: opacity 0.2s;
+        }
+
+        .player-link:hover {
+            opacity: 0.8;
+            filter: brightness(1.2);
+        }
+
+        .footer-text {
+            text-align: center;
+            font-size: 11px;
+            opacity: 0.4;
+            margin-top: 8px;
+            color: #ffffff;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <!-- Update Banner -->
-        <div class="update-banner" id="updateBanner">
-            <div class="update-info">
-                <span class="update-icon">🚀</span>
-                <div class="update-text">
-                    <h3>Update Available!</h3>
-                    <p id="updateVersion">Version X.X.X is ready to download</p>
+        <!-- Sound Selection Context Menu -->
+        <div class="context-menu" id="soundContextMenu">
+            <div class="context-menu-title">🔊 Som do Filtro</div>
+            <div class="context-menu-item" data-sound="ping">Ping <span class="preview-btn" onclick="previewSound('ping', event)">▶</span></div>
+            <div class="context-menu-item" data-sound="bell">Bell <span class="preview-btn" onclick="previewSound('bell', event)">▶</span></div>
+            <div class="context-menu-item" data-sound="chime">Chime <span class="preview-btn" onclick="previewSound('chime', event)">▶</span></div>
+            <div class="context-menu-item" data-sound="alert">Alert <span class="preview-btn" onclick="previewSound('alert', event)">▶</span></div>
+            <div class="context-menu-item" data-sound="notification">Notification <span class="preview-btn" onclick="previewSound('notification', event)">▶</span></div>
+            <div class="context-menu-item" data-sound="pop">Pop <span class="preview-btn" onclick="previewSound('pop', event)">▶</span></div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div class="toast-notification" id="copyToast">
+            <div class="toast-text">✅ Copiado com sucesso!</div>
+            <div class="toast-progress-bg">
+                <div class="toast-progress-bar" id="toastProgressBar"></div>
+            </div>
+        </div>
+
+        <div class="update-overlay" id="updateOverlay">
+            <h2 id="updateTitle">Baixando Atualização...</h2>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="update-status" id="updateStatus">0%</div>
+        </div>
+
+        <div class="left-column">
+            <div class="header">
+                <h1 id="appTitle">Fatal Notifications <span class="version-tag" id="versionTag">v1.0.6</span></h1>
+                <div class="status" id="statusBadge">
+                    <span class="status-dot"></span>
+                    <span id="statusText">Parado</span>
                 </div>
             </div>
-            <button class="btn-update" id="btnUpdate" onclick="openUpdatePage()">Download</button>
-        </div>
 
-        <!-- Header -->
-        <div class="header">
-            <button class="btn-minimize" onclick="minimizeToTray()" title="Minimize to Tray">➖ Tray</button>
-            <h1 id="appTitle">📡 Fatal Notifications <span class="version-tag" id="versionTag">v1.0.0</span></h1>
-            <div class="status" id="statusBadge">
-                <span class="status-dot"></span>
-                <span id="statusText">Stopped</span>
-            </div>
-        </div>
-
-        <!-- Settings -->
-        <div class="card">
-            <div class="card-title">⚙️ API Settings</div>
-            <div class="form-group">
-                <label>TS3 API Key</label>
-                <div class="form-row">
-                    <input type="text" id="ts3Key" placeholder="e.g. XXXX-XXXX-XXXX-XXXX-XXXX">
+            <div class="card">
+                <div class="card-title">⚙️ Configurações da API</div>
+                <div class="form-group">
+                    <label>Chave API TS3</label>
+                    <div class="form-row">
+                        <input type="text" id="ts3Key" placeholder="ex. XXXX-XXXX-XXXX-XXXX-XXXX">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Chave API Pushbullet</label>
+                    <div class="form-row">
+                        <input type="text" id="pbKey" placeholder="Seu Token de Acesso Pushbullet">
+                        <button class="btn btn-primary" onclick="saveSettings()">Salvar</button>
+                    </div>
                 </div>
             </div>
-            <div class="form-group">
-                <label>Pushbullet API Key</label>
-                <div class="form-row">
-                    <input type="text" id="pbKey" placeholder="Your Pushbullet Access Token">
-                    <button class="btn btn-primary" onclick="saveSettings()">💾 Save</button>
+
+            <div class="card">
+                <div class="card-title" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <span>🔔 Filtros de Notificação</span>
+                    <button class="sound-toggle" id="soundToggle" onclick="toggleSound()" title="Som de notificação">
+                        <span class="sound-icon sound-off">🔇</span>
+                        <span class="sound-icon sound-on" style="display:none;">🔊</span>
+                    </button>
+                </div>
+                <div class="filters-grid" id="filtersGrid">
+                    <label class="toggle-item" data-filter="next" oncontextmenu="showSoundMenu(event, 'next')">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="filterNext" checked>
+                            <span class="toggle-slider"></span>
+                        </div>
+                        <span class="toggle-label">Next</span>
+                    </label>
+                    <label class="toggle-item" data-filter="poke" oncontextmenu="showSoundMenu(event, 'poke')">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="filterPoke" checked>
+                            <span class="toggle-slider"></span>
+                        </div>
+                        <span class="toggle-label">Pokes diversos</span>
+                    </label>
+                    <label class="toggle-item" data-filter="hunted_up" oncontextmenu="showSoundMenu(event, 'hunted_up')">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="filterHuntedUp">
+                            <span class="toggle-slider"></span>
+                        </div>
+                        <span class="toggle-label">Hunted upou</span>
+                    </label>
+                    <label class="toggle-item" data-filter="friend_up" oncontextmenu="showSoundMenu(event, 'friend_up')">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="filterFriendUp">
+                            <span class="toggle-slider"></span>
+                        </div>
+                        <span class="toggle-label">Friend upou</span>
+                    </label>
+                    <label class="toggle-item" data-filter="hunted_death" oncontextmenu="showSoundMenu(event, 'hunted_death')">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="filterHuntedDeath">
+                            <span class="toggle-slider"></span>
+                        </div>
+                        <span class="toggle-label">Hunted morreu</span>
+                    </label>
+                    <label class="toggle-item" data-filter="friend_death" oncontextmenu="showSoundMenu(event, 'friend_death')">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="filterFriendDeath">
+                            <span class="toggle-slider"></span>
+                        </div>
+                        <span class="toggle-label">Friend morreu</span>
+                    </label>
                 </div>
             </div>
-        </div>
 
-        <!-- Filters -->
-        <div class="card">
-            <div class="card-title">🔔 Notification Filters</div>
-            <div class="filters-grid">
-                <label class="toggle-item">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="filterNext" checked>
-                        <span class="toggle-slider"></span>
-                    </div>
-                    <span class="toggle-label">🎯 Next Respawn</span>
-                </label>
-                <label class="toggle-item">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="filterPoke" checked>
-                        <span class="toggle-slider"></span>
-                    </div>
-                    <span class="toggle-label">📢 Other Pokes</span>
-                </label>
-                <label class="toggle-item">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="filterHuntedUp" checked>
-                        <span class="toggle-slider"></span>
-                    </div>
-                    <span class="toggle-label">⬆️ Hunted Up</span>
-                </label>
-                <label class="toggle-item">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="filterFriendUp" checked>
-                        <span class="toggle-slider"></span>
-                    </div>
-                    <span class="toggle-label">👋 Friend Up</span>
-                </label>
-                <label class="toggle-item">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="filterHuntedDeath" checked>
-                        <span class="toggle-slider"></span>
-                    </div>
-                    <span class="toggle-label">💀 Hunted Death</span>
-                </label>
-                <label class="toggle-item">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="filterFriendDeath" checked>
-                        <span class="toggle-slider"></span>
-                    </div>
-                    <span class="toggle-label">☠️ Friend Death</span>
-                </label>
+            <div class="controls">
+                <button class="btn btn-ghost btn-control" id="btnStop" onclick="stopMonitoring()" disabled>
+                    Pausar
+                </button>
+                <button class="btn btn-success btn-control" id="btnStart" onclick="startMonitoring()">
+                    Iniciar
+                </button>
             </div>
+            <div class="footer-text">Feito com &lt;3 por Even Worse</div>
         </div>
 
-        <!-- Activity Log -->
-        <div class="card">
-            <div class="card-title">📋 Activity Log</div>
-            <div class="log-area" id="logArea">
-                <div class="log-entry"><span class="log-time">[--:--:--]</span>Ready to start...</div>
+        <div class="right-column">
+            <div class="card log-card">
+                <div class="card-title" style="display: flex; justify-content: space-between; width: 100%;">
+                    <span>📋 Registro de Atividades</span>
+                    <button class="btn-clear" onclick="clearLog()" title="Limpar Log">🗑️</button>
+                </div>
+                <div class="log-area" id="logArea">
+                    <div class="log-entry" onclick="copyLog(this)"><span class="log-time">[--:--:--]</span><span
+                            class="log-message">Pronto para iniciar...</span></div>
+                </div>
             </div>
-        </div>
-
-        <!-- Controls -->
-        <div class="controls">
-            <button class="btn btn-success btn-control" id="btnStart" onclick="startMonitoring()">
-                ▶️ Start Monitoring
-            </button>
-            <button class="btn btn-danger btn-control" id="btnStop" onclick="stopMonitoring()" disabled>
-                ⏹️ Stop
-            </button>
         </div>
     </div>
 
@@ -498,47 +956,277 @@
         // State
         let isRunning = false;
         let pendingUpdateUrl = null;
+        let toastTimeout; // Added toast timeout state
+        let soundEnabled = false;
+        let currentContextFilter = null;
+        let filterSounds = {
+            next: 'ping',
+            poke: 'ping',
+            hunted_up: 'ping',
+            friend_up: 'ping',
+            hunted_death: 'ping',
+            friend_death: 'ping'
+        };
+
+        // Audio Context for generating sounds
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+            return audioCtx;
+        }
+
+        // Sound generators using Web Audio API
+        const soundGenerators = {
+            ping: () => {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.3);
+            },
+            bell: () => {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(830, ctx.currentTime);
+                gain.gain.setValueAtTime(0.4, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.8);
+            },
+            chime: () => {
+                const ctx = getAudioContext();
+                [523, 659, 784].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.4);
+                    osc.start(ctx.currentTime + i * 0.1);
+                    osc.stop(ctx.currentTime + i * 0.1 + 0.4);
+                });
+            },
+            alert: () => {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(600, ctx.currentTime);
+                osc.frequency.setValueAtTime(800, ctx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(600, ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.setValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.3);
+            },
+            notification: () => {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(587, ctx.currentTime);
+                osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.5);
+            },
+            pop: () => {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(400, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.4, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.15);
+            }
+        };
+
+        function playSound(soundName) {
+            if (soundGenerators[soundName]) {
+                soundGenerators[soundName]();
+            }
+        }
+
+        function previewSound(soundName, event) {
+            event.stopPropagation();
+            playSound(soundName);
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('soundToggle');
+            const offIcon = btn.querySelector('.sound-off');
+            const onIcon = btn.querySelector('.sound-on');
+            
+            if (soundEnabled) {
+                btn.classList.add('active');
+                offIcon.style.display = 'none';
+                onIcon.style.display = 'inline';
+                playSound('ping'); // Play a sound to confirm
+            } else {
+                btn.classList.remove('active');
+                offIcon.style.display = 'inline';
+                onIcon.style.display = 'none';
+            }
+        }
+
+        function showSoundMenu(event, filterName) {
+            event.preventDefault();
+            currentContextFilter = filterName;
+            
+            const menu = document.getElementById('soundContextMenu');
+            const items = menu.querySelectorAll('.context-menu-item');
+            
+            // Update selected state
+            items.forEach(item => {
+                item.classList.remove('selected');
+                if (item.dataset.sound === filterSounds[filterName]) {
+                    item.classList.add('selected');
+                }
+            });
+            
+            // Show menu first to get its dimensions
+            menu.style.visibility = 'hidden';
+            menu.classList.add('show');
+            
+            const menuRect = menu.getBoundingClientRect();
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            // Calculate position, adjusting if it would go outside viewport
+            let left = event.clientX;
+            let top = event.clientY;
+            
+            // Check right edge
+            if (left + menuRect.width > windowWidth - 10) {
+                left = windowWidth - menuRect.width - 10;
+            }
+            
+            // Check bottom edge
+            if (top + menuRect.height > windowHeight - 10) {
+                top = windowHeight - menuRect.height - 10;
+            }
+            
+            // Ensure not negative
+            left = Math.max(10, left);
+            top = Math.max(10, top);
+            
+            menu.style.left = left + 'px';
+            menu.style.top = top + 'px';
+            menu.style.visibility = 'visible';
+        }
+
+        function hideContextMenu() {
+            document.getElementById('soundContextMenu').classList.remove('show');
+            currentContextFilter = null;
+        }
+
+        function selectSound(soundName) {
+            if (currentContextFilter) {
+                filterSounds[currentContextFilter] = soundName;
+                playSound(soundName);
+            }
+            hideContextMenu();
+        }
+
+        // Close context menu on click elsewhere
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.context-menu')) {
+                hideContextMenu();
+            }
+        });
+
+        // Setup context menu item clicks
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.context-menu-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('preview-btn')) {
+                        selectSound(item.dataset.sound);
+                    }
+                });
+            });
+        });
 
         // Initialize app
         async function initApp() {
-            // Load app info
+            // App Info
             const appInfo = await window.api.getAppInfo();
             if (appInfo) {
                 document.getElementById('versionTag').textContent = 'v' + appInfo.version;
             }
 
-            // Load settings
+            // Settings
             await loadSettingsFromMain();
 
-            // Check for updates
-            const update = await window.api.checkUpdate();
-            if (update && update.available) {
-                pendingUpdateUrl = update.download_url;
-                document.getElementById('updateVersion').textContent =
-                    `Version ${update.version} is ready to download`;
-                document.getElementById('updateBanner').classList.add('show');
-                addLog(`🚀 Update available: v${update.version}`);
-            }
+            // Logs
+            window.api.onLog((message) => addLog(message));
 
-            // Listen for logs from main process
-            window.api.onLog((message) => {
-                addLog(message);
-            });
-
-            // Listen for status changes
+            // Status
             window.api.onStatus((running) => {
                 updateStatus(running);
-                if (!running) {
-                    onStopped();
-                }
+                if (!running) onStopped();
             });
+
+            // Initialize UI state
+            updateStatus(false);
+
+            // Update Listeners
+            window.api.onDownloadProgress((percent) => {
+                const bar = document.getElementById('progressBar');
+                const status = document.getElementById('updateStatus');
+                bar.style.width = percent + '%';
+                status.textContent = Math.round(percent) + '%';
+            });
+
+            window.api.onDownloadComplete(() => {
+                document.getElementById('updateTitle').textContent = 'Instalando Atualização...';
+                document.getElementById('updateStatus').textContent = 'Reiniciando aplicação...';
+            });
+
+            window.api.onDownloadError((err) => {
+                document.getElementById('updateTitle').textContent = 'Falha na Atualização!';
+                document.getElementById('updateStatus').textContent = err;
+                setTimeout(() => {
+                    document.getElementById('updateOverlay').classList.remove('show');
+                }, 3000);
+            });
+
+            // Check for updates immediately
+            const update = await window.api.checkUpdate();
+            if (update && update.available) {
+                startUpdateProcess(update.version, update.download_url);
+            }
         }
 
-        // Open update page in browser
-        function openUpdatePage() {
-            if (pendingUpdateUrl) {
-                require('electron').shell.openExternal(pendingUpdateUrl);
-            }
+        // Start the update process
+        function startUpdateProcess(version, url) {
+            document.getElementById('updateOverlay').classList.add('show');
+            document.getElementById('updateTitle').textContent = `Baixando Atualização v${version}...`;
+            window.api.downloadUpdate(url);
         }
 
         // Load settings from main process
@@ -555,6 +1243,22 @@
                 document.getElementById('filterFriendUp').checked = filters.friend_up !== false;
                 document.getElementById('filterHuntedDeath').checked = filters.hunted_death !== false;
                 document.getElementById('filterFriendDeath').checked = filters.friend_death !== false;
+
+                // Load sound settings
+                soundEnabled = settings.sound_enabled || false;
+                if (settings.filter_sounds) {
+                    filterSounds = { ...filterSounds, ...settings.filter_sounds };
+                }
+                
+                // Update sound toggle UI
+                const btn = document.getElementById('soundToggle');
+                const offIcon = btn.querySelector('.sound-off');
+                const onIcon = btn.querySelector('.sound-on');
+                if (soundEnabled) {
+                    btn.classList.add('active');
+                    offIcon.style.display = 'none';
+                    onIcon.style.display = 'inline';
+                }
             }
         }
 
@@ -570,13 +1274,15 @@
                     friend_up: document.getElementById('filterFriendUp').checked,
                     hunted_death: document.getElementById('filterHuntedDeath').checked,
                     friend_death: document.getElementById('filterFriendDeath').checked
-                }
+                },
+                sound_enabled: soundEnabled,
+                filter_sounds: filterSounds
             };
             const result = await window.api.saveSettings(settings);
             if (result) {
-                addLog('✅ Settings saved!');
+                addLog('✅ Configurações salvas!');
             } else {
-                addLog('❌ Failed to save settings');
+                addLog('❌ Falha ao salvar configurações');
             }
         }
 
@@ -584,7 +1290,7 @@
         async function startMonitoring() {
             const ts3Key = document.getElementById('ts3Key').value;
             if (!ts3Key) {
-                addLog('❌ Please enter TS3 API Key first!');
+                addLog('❌ Por favor insira a Chave API TS3 primeiro!');
                 return;
             }
 
@@ -593,8 +1299,6 @@
 
             isRunning = true;
             updateStatus(true);
-            document.getElementById('btnStart').disabled = true;
-            document.getElementById('btnStop').disabled = false;
 
             await window.api.startMonitoring();
         }
@@ -609,19 +1313,59 @@
             const badge = document.getElementById('statusBadge');
             const text = document.getElementById('statusText');
 
+            const btnStart = document.getElementById('btnStart');
+            const btnStop = document.getElementById('btnStop');
+
             if (running) {
+                // Status Badge
                 badge.classList.add('running');
-                text.textContent = 'Running';
+                text.textContent = 'Rodando';
+
+                // Start Button (Running State)
+                btnStart.innerHTML = '<span class="btn-dot green"></span>Rodando';
+                btnStart.classList.add('btn-running');
+                btnStart.classList.remove('btn-success');
+                btnStart.disabled = true;
+
+                // Stop Button (Ready to Pause)
+                btnStop.innerHTML = 'Pausar';
+                btnStop.classList.remove('btn-paused');
+                btnStop.disabled = false;
+
             } else {
+                // Status Badge
                 badge.classList.remove('running');
-                text.textContent = 'Stopped';
+                text.textContent = 'Parado';
+
+                // Start Button (Ready to Start)
+                btnStart.innerHTML = 'Iniciar';
+                btnStart.classList.remove('btn-running');
+                btnStart.classList.add('btn-success');
+                btnStart.disabled = false;
+
+                // Stop Button (Paused State)
+                btnStop.innerHTML = '<span class="btn-dot red"></span>Pausado';
+                btnStop.classList.add('btn-paused');
+                btnStop.disabled = true;
             }
         }
 
-        // Disable/Enable input fields
+        // Disable/Enable input fields and filters
         function setFieldsDisabled(disabled) {
             document.getElementById('ts3Key').disabled = disabled;
             document.getElementById('pbKey').disabled = disabled;
+            
+            // Disable/enable filter toggles
+            const filtersGrid = document.querySelector('.filters-grid');
+            if (disabled) {
+                filtersGrid.classList.add('disabled');
+            } else {
+                filtersGrid.classList.remove('disabled');
+            }
+            
+            // Also disable the actual checkboxes
+            const filterCheckboxes = filtersGrid.querySelectorAll('input[type="checkbox"]');
+            filterCheckboxes.forEach(cb => cb.disabled = disabled);
         }
 
         // Called when monitoring stops
@@ -629,8 +1373,6 @@
             isRunning = false;
             updateStatus(false);
             setFieldsDisabled(false);
-            document.getElementById('btnStart').disabled = false;
-            document.getElementById('btnStop').disabled = true;
         }
 
         // Minimize to system tray
@@ -644,9 +1386,184 @@
             const time = new Date().toLocaleTimeString('en-US', { hour12: false });
             const entry = document.createElement('div');
             entry.className = 'log-entry';
-            entry.innerHTML = `<span class="log-time">[${time}]</span>${message}`;
+            entry.onclick = function () { copyLog(this); };
+
+            let tag = '';
+            let tagClass = '';
+            let icon = '';
+            let msgClass = 'msg-white';
+            let cleanMessage = message;
+            let filterType = null; // Track which filter type this is for sound
+
+            // Determine styling based on message content
+            // Poke and Next Spawn: full yellow message
+            if (message.includes('[Next Respawn]')) {
+                msgClass = 'msg-next';
+                icon = '🔔';
+                cleanMessage = message.replace('[Next Respawn]:', '').trim();
+                filterType = 'next';
+            } else if (message.includes('[Poke]')) {
+                msgClass = 'msg-poke';
+                icon = '🔔';
+                cleanMessage = message.replace('[Poke]:', '').trim();
+                filterType = 'poke';
+            } 
+            // Other notification types: white text with small colored tag
+            else if (message.includes('[Friend Up]')) {
+                tag = 'Friend Up';
+                tagClass = 'tag-green';
+                icon = '⬆️';
+                cleanMessage = message.replace('[Friend Up]:', '').trim();
+                filterType = 'friend_up';
+            } else if (message.includes('[Friend Down]')) {
+                tag = 'Friend Down';
+                tagClass = 'tag-red';
+                icon = '⬇️';
+                cleanMessage = message.replace('[Friend Down]:', '').trim();
+                filterType = 'friend_up';
+            } else if (message.includes('[Hunted Death]')) {
+                tag = 'Hunted Death';
+                tagClass = 'tag-green';
+                icon = '💀';
+                cleanMessage = message.replace('[Hunted Death]:', '').trim();
+                filterType = 'hunted_death';
+            } else if (message.includes('[Friend Death]')) {
+                tag = 'Friend Death';
+                tagClass = 'tag-red';
+                icon = '💀';
+                cleanMessage = message.replace('[Friend Death]:', '').trim();
+                filterType = 'friend_death';
+            } else if (message.includes('[Hunted Up]')) {
+                tag = 'Hunted Up';
+                tagClass = 'tag-red';
+                icon = '⬆️';
+                cleanMessage = message.replace('[Hunted Up]:', '').trim();
+                filterType = 'hunted_up';
+            } else if (message.includes('[Hunted Down]')) {
+                tag = 'Hunted Down';
+                tagClass = 'tag-green';
+                icon = '⬇️';
+                cleanMessage = message.replace('[Hunted Down]:', '').trim();
+                filterType = 'hunted_up';
+            }
+
+            // Check for standard errors/info to keep them clean or default
+            if (message.startsWith('❌') || message.startsWith('⚠️') || message.startsWith('✅') || message.startsWith('🚀') || message.startsWith('⏹️') || message.startsWith('🧹') || message.startsWith('🔐') || message.startsWith('👉')) {
+                // Already has an emoji/icon - white text
+                entry.innerHTML = `<span class="log-time">[${time}]</span><span class="log-message msg-white">${linkifyMessage(message)}</span>`;
+            } else if (tag) {
+                // Messages with colored tags (Friend Up, Hunted Death, etc.)
+                entry.innerHTML = `<span class="log-time">[${time}]</span><span class="log-message msg-white">${icon} <span class="log-tag ${tagClass}">${tag}</span>${linkifyMessage(cleanMessage)}</span>`;
+            } else if (msgClass === 'msg-poke' || msgClass === 'msg-next') {
+                // Poke and Next Spawn: full yellow message
+                entry.innerHTML = `<span class="log-time">[${time}]</span><span class="log-message ${msgClass}">${icon} ${linkifyMessage(cleanMessage)}</span>`;
+            } else {
+                // Default white message
+                entry.innerHTML = `<span class="log-time">[${time}]</span><span class="log-message msg-white">${linkifyMessage(message)}</span>`;
+            }
+
             logArea.appendChild(entry);
-            logArea.scrollTop = logArea.scrollHeight;
+            logArea.scrollTop = logArea.scrollHeight; // Auto-scroll
+
+            // Play sound if enabled and this is a notification type
+            if (soundEnabled && filterType && filterSounds[filterType]) {
+                playSound(filterSounds[filterType]);
+            }
+        }
+
+        // Copy log functionality
+        function copyLog(element) {
+            const msg = element.innerText;
+            navigator.clipboard.writeText(msg).then(() => {
+                showToast();
+            });
+        }
+
+        // Clear log functionality
+        function clearLog() {
+            const logArea = document.getElementById('logArea');
+            logArea.innerHTML = '';
+            addLog('🧹 Log limpo.');
+        }
+
+        // Linkify message content
+        function linkifyMessage(message) {
+            let html = message;
+
+            // Skip prefixes like "FRIEND DEATH", "HUNTED UP", etc. to get the actual player name
+            const prefixPattern = /^(?:FRIEND DEATH|FRIEND UP|FRIEND DOWN|HUNTED DEATH|HUNTED UP|HUNTED DOWN)\s+/i;
+
+            // Pattern 1: Upou (Level Up)
+            // Matches: "[Tag]: Name upou >" OR "Name upou >"
+            const upMatch = message.match(/(?:\]:\s|^)(.*?) upou >/i);
+            if (upMatch && upMatch[1]) {
+                let name = upMatch[1].trim();
+                // Remove prefix if present to get actual player name
+                name = name.replace(prefixPattern, '').trim();
+                if (name) {
+                    html = html.replace(name, `<span class="player-link" onclick="openChar('${name.replace(/'/g, "\\'")}', event)">${name}</span>`);
+                }
+                return html;
+            }
+
+            // Pattern 2: Death
+            const deathMatch = message.match(/(?:\]:\s|^)(.*?) (?:died|killed|morreu)/i);
+            if (deathMatch && deathMatch[1]) {
+                let name = deathMatch[1].trim();
+                // Remove prefix if present to get actual player name
+                name = name.replace(prefixPattern, '').trim();
+                if (name) {
+                    html = html.replace(name, `<span class="player-link" onclick="openChar('${name.replace(/'/g, "\\'")}', event)">${name}</span>`);
+                }
+                return html;
+            }
+
+            return html;
+        }
+
+        // Open Character Page
+        function openChar(name, event) {
+            // Prevent the click from bubbling up to the log-entry (which copies the text)
+            if (event) event.stopPropagation();
+
+            const url = `https://rubinot.com.br/?subtopic=characters&name=${encodeURIComponent(name)}`;
+            console.log('Attempting to open URL:', url); // Debug log
+
+            if (window.api && window.api.openExternal) {
+                window.api.openExternal(url)
+                    .catch(err => console.error('Failed to open external URL:', err));
+            } else {
+                console.error('window.api.openExternal is not available. Check preload.js.');
+            }
+        }
+
+        // Show Toast Function
+        function showToast() {
+            const toast = document.getElementById('copyToast');
+            const bar = document.getElementById('toastProgressBar');
+
+            // Reset
+            toast.classList.remove('show');
+            bar.style.transition = 'none';
+            bar.style.width = '100%';
+            clearTimeout(toastTimeout);
+
+            // Trigger reflow
+            void toast.offsetWidth;
+
+            // Show
+            toast.classList.add('show');
+
+            // Start Progress Animation
+            requestAnimationFrame(() => {
+                bar.style.transition = 'width 4s linear';
+                bar.style.width = '0%';
+            });
+
+            // Hide after 4s
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
         }
 
         // Initialize on load
