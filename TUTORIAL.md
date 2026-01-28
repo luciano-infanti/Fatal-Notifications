@@ -1,19 +1,5 @@
-# Fatal Notifications
-
-Aplicativo desktop que monitora o TeamSpeak 3 para mensagens de bot e envia notificações push via Pushbullet.
-
-## Funcionalidades
-
-- 🔔 **Alertas em Tempo Real**: Seja notificado instantaneamente quando o BB-Bot enviar mensagens
-- 📱 **Integração com Pushbullet**: Receba notificações no seu celular
-- 🎨 **Interface Moderna**: Tema escuro inspirado no Discord
-- 🔄 **Atualização Automática**: Verifica e instala atualizações automaticamente
-- 💾 **Configurações Persistentes**: Suas chaves de API são salvas localmente
-
----
-
-## 🔔 Guia Definitivo: Configuração
-### Tudo o que você precisa para configurar e nunca mais perder um boss!
+# 🔔 Guia Definitivo: Fatal Notifications
+## Tudo o que você precisa para configurar e nunca mais perder um boss!
 
 ---
 
@@ -31,7 +17,7 @@ Aplicativo desktop que monitora o TeamSpeak 3 para mensagens de bot e envia noti
 O **Fatal Notifications** fica de olho no chat do seu TeamSpeak 3 enquanto você faz outras coisas (ou dorme!). Ele é perfeito para quem não quer perder a vez no Respawn. Quando o BB-Bot Tibia avisa que você foi pokeado, o programa captura essa mensagem e envia **imediatamente** para o seu celular.
 
 ## <a name="capítulo-2-download"></a>Capítulo 2: Download e Instalação
-Primeiro, vamos colocar a ferramenta no seu computador. Ela foi desenvolvida pelo guild member, Even Worse. Questões referentes à segurança da aplicação podem ser encontradas na seção [Segurança e Privacidade](#segurança-e-privacidade) abaixo.
+Primeiro, vamos colocar a ferramenta no seu computador. Ela foi desenvolvida pelo guild member, Even Worse. Questões  referentes à segurança da aplicação podem ser encontradas na seção Segurança e Privacidade clicando [aqui](https://github.com/luciano-infanti/Fatal-Notifications).
 
 1. **Onde baixar?**
    * Acesse a página oficial de lançamentos (Releases): [Clique Aqui para Baixar](https://github.com/luciano-infanti/Fatal-Notifications/releases)
@@ -87,7 +73,6 @@ O Pushbullet é o "carteiro" que vai levar a mensagem do seu PC para o seu celul
    * Um código grande e estranho vai aparecer (exemplo: `o.Pz8s...`).
    * **COPIE ESSE CÓDIGO!** 
 > 🔒 **SEGURANÇA:** Trate esta chave como uma senha. **Nunca a compartilhe com ninguém**, pois ela permite que aplicativos externos se comuniquem diretamente com o seu celular.
-
 ---
 
 ## <a name="capítulo-5-configuração-final"></a>Capítulo 5: Configurando o Fatal Notifications
@@ -116,72 +101,4 @@ Agora vamos juntar tudo!
   `%AppData%\Roaming\fatal-notifications\settings.json`
 
 ---
-
-## 🔔 Filtros de Notificação
-
-| Filtro | Descrição |
-|--------|-----------|
-| **Next** | Pokes contendo "chegou sua vez no respawn" |
-| **Pokes diversos** | Todas as outras mensagens de poke |
-| **Hunted upou** | Level up de jogadores na lista de Hunted |
-| **Friend upou** | Level up de jogadores na lista de Friend |
-| **Hunted morreu** | Morte de jogadores na lista de Hunted |
-| **Friend morreu** | Morte de jogadores na lista de Friend |
-
----
-
-## <a name="segurança-e-privacidade"></a>🔒 Segurança e Privacidade
-
-### 🔐 Suas Chaves de API são Seguras
-
-- **Armazenamento Local**: Suas chaves de API são salvas **apenas no seu computador**, na pasta AppData do seu usuário
-- **Nunca Enviadas**: As chaves **nunca são enviadas** para nenhum servidor externo além do Pushbullet (para enviar suas notificações)
-- **Não Incluídas no Build**: Quando você compila ou atualiza o app, suas chaves permanecem salvas e privadas
-
-### 🛡️ O que o Software Faz (e NÃO Faz)
-
-| ✅ O que FAZ | ❌ O que NÃO faz |
-|-------------|-----------------|
-| Conecta ao TeamSpeak 3 local (127.0.0.1) | Não acessa servidores externos do TS3 |
-| Envia notificações via Pushbullet | Não coleta dados pessoais |
-| Salva configurações localmente | Não envia suas chaves para terceiros |
-| Verifica atualizações no GitHub | Não instala software adicional |
-
-### 📍 Onde Seus Dados São Armazenados
-
-```
-C:\Users\{SeuUsuário}\AppData\Roaming\fatal-notifications\settings.json
-```
-
-Este arquivo contém apenas suas chaves de API e preferências de filtro. Você pode deletá-lo a qualquer momento para "resetar" o aplicativo.
-
-### 🔒 Software Proprietário
-
-Este é um software proprietário. Todos os direitos reservados. O uso, cópia, modificação ou distribuição não autorizada é proibida.
-
----
-
-## 🛠️ Compilando do Código-Fonte
-
-Se preferir compilar você mesmo (em vez de baixar o .exe pronto):
-
-```bash
-# Clone o repositório
-git clone https://github.com/luciano-infanti/Fatal-Notifications.git
-cd Fatal-Notifications
-
-# Instale as dependências
-npm install
-
-# Execute em modo desenvolvimento
-npm start
-
-# Ou compile o instalador
-npm run build
-```
-
----
-
-## 📄 Licença
-
-**Proprietário** - Todos os direitos reservados. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+*Divirta-se e bom hunt!* 🕷️🐉

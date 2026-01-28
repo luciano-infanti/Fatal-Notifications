@@ -10,7 +10,7 @@
     "build:exe": "npm run clean && electron-builder --win nsis"
   },
   "author": "sickn33",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "build": {
     "appId": "com.fatalnotifications.app",
     "productName": "Fatal Notifications",
